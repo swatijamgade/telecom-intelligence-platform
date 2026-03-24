@@ -486,7 +486,7 @@ const LoginPage = ({onLogin,theme,onToggleTheme}) => {
         </button>
 
         <p style={loginS.signupText}>
-          {isSignupMode ? "Already have an account?" : "Don&apos;t have an account?"}{" "}
+          {isSignupMode ? "Already have an account?" : "Don't have an account?"}{" "}
           <button
             type="button"
             style={loginS.signupSwitchBtn}
