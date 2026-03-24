@@ -1,14 +1,60 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import { useState, useEffect, useMemo } from "react";
+import { getApiErrorMessage } from "./api/client";
+import {
+  createUser as createUserRequest,
+  getUsers as getUsersRequest,
+  login as loginRequest,
+  logout as logoutRequest,
+  removeUser as removeUserRequest,
+  signup as signupRequest,
+} from "./services/authService";
 
 /* ─── TOKENS ─────────────────────────────────────────── */
 const T = {
-  bg: "#05080f", surf: "#0b1220", surf2: "#101a2c", surf3: "#162035",
-  border: "rgba(0,220,255,0.10)", border2: "rgba(0,220,255,0.22)",
-  cyan: "#00dcff", cyanD: "#0099bb", violet: "#8b5cf6",
-  green: "#00ffb0", amber: "#fbbf24", red: "#f43f5e",
-  text: "#d8eeff", muted: "#4d6e8a", muted2: "#2a4560",
+  bg: "var(--bg, #030c24)", surf: "var(--surf, #081a3d)", surf2: "var(--surf2, #0b224e)", surf3: "var(--surf3, #122d63)",
+  border: "var(--border, rgba(70,130,220,0.28))", border2: "var(--border2, rgba(44,198,255,0.55))",
+  cyan: "var(--cyan, #2cc6ff)", cyanD: "var(--cyanD, #1d8be8)", violet: "var(--violet, #8a7aff)",
+  green: "var(--green, #26d6a1)", amber: "var(--amber, #ffc54d)", red: "var(--red, #ff6b9d)",
+  text: "var(--text, #e9f4ff)", muted: "var(--muted, #8ea9d3)", muted2: "var(--muted2, #5a73a0)",
+};
+
+const THEME_VARS = {
+  dark: {
+    "--bg": "#030c24",
+    "--surf": "#081a3d",
+    "--surf2": "#0b224e",
+    "--surf3": "#122d63",
+    "--border": "rgba(70,130,220,0.28)",
+    "--border2": "rgba(44,198,255,0.55)",
+    "--cyan": "#2cc6ff",
+    "--cyanD": "#1d8be8",
+    "--violet": "#8a7aff",
+    "--green": "#26d6a1",
+    "--amber": "#ffc54d",
+    "--red": "#ff6b9d",
+    "--text": "#e9f4ff",
+    "--muted": "#8ea9d3",
+    "--muted2": "#5a73a0",
+  },
+  light: {
+    "--bg": "#edf3ff",
+    "--surf": "#ffffff",
+    "--surf2": "#f4f8ff",
+    "--surf3": "#e5edff",
+    "--border": "rgba(36,84,158,0.20)",
+    "--border2": "rgba(22,120,236,0.45)",
+    "--cyan": "#0b7bff",
+    "--cyanD": "#095fc8",
+    "--violet": "#6d62e8",
+    "--green": "#129b73",
+    "--amber": "#c78100",
+    "--red": "#d44f83",
+    "--text": "#0e1d3a",
+    "--muted": "#5974a0",
+    "--muted2": "#8aa0c3",
+  },
 };
 
 /* ─── GLOBAL STYLES ──────────────────────────────────── */
@@ -23,7 +69,7 @@ const GLOBAL_CSS = `
   input,select{color:${T.text};background:${T.surf2};border:1px solid ${T.border};border-radius:8px;
     padding:9px 12px;font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;width:100%;
     transition:border-color .2s,box-shadow .2s}
-  input:focus,select:focus{border-color:${T.cyan};box-shadow:0 0 0 3px rgba(0,220,255,.1)}
+  input:focus,select:focus{border-color:${T.cyan};box-shadow:0 0 0 3px rgba(44,198,255,.16)}
   input::placeholder{color:${T.muted}}
   select option{background:${T.surf2}}
   button{cursor:pointer}
@@ -34,7 +80,7 @@ const GLOBAL_CSS = `
   @keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
   @keyframes shimmer{0%{background-position:-200px 0}100%{background-position:200px 0}}
   @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-  @keyframes glowPulse{0%,100%{box-shadow:0 0 0 rgba(0,214,255,0)}50%{box-shadow:0 0 22px rgba(0,214,255,.28)}}
+  @keyframes glowPulse{0%,100%{box-shadow:0 0 0 rgba(44,198,255,0)}50%{box-shadow:0 0 22px rgba(44,198,255,.28)}}
 `;
 
 /* ─── MOCK DATA ──────────────────────────────────────── */
@@ -49,13 +95,13 @@ const fakeDate = () => {
 };
 const fmtDur = s => { const m=Math.floor(s/60); return `${pad(m)}:${pad(s%60)}`; };
 
-const USERS = [
-  {name:"Sarah Al-Rashidi",email:"sarah@pinevox.io",role:"admin",calls:1240,reports:34,grad:`linear-gradient(135deg,${T.cyan},${T.violet})`},
-  {name:"Hamza Malik",email:"hamza@pinevox.io",role:"analyst",calls:860,reports:21,grad:`linear-gradient(135deg,${T.green},${T.cyan})`},
-  {name:"Nadia Qureshi",email:"nadia@pinevox.io",role:"analyst",calls:543,reports:15,grad:`linear-gradient(135deg,${T.violet},${T.red})`},
-  {name:"Omar Farooq",email:"omar@pinevox.io",role:"admin",calls:2100,reports:67,grad:`linear-gradient(135deg,${T.amber},#ff8c00)`},
-  {name:"Zara Khan",email:"zara@pinevox.io",role:"analyst",calls:390,reports:9,grad:`linear-gradient(135deg,${T.red},${T.violet})`},
-  {name:"Ali Hassan",email:"ali@pinevox.io",role:"analyst",calls:712,reports:18,grad:`linear-gradient(135deg,${T.green},#00a0ff)`},
+const USER_GRADIENTS = [
+  `linear-gradient(135deg,${T.cyan},${T.violet})`,
+  `linear-gradient(135deg,${T.green},${T.cyan})`,
+  `linear-gradient(135deg,${T.violet},${T.red})`,
+  `linear-gradient(135deg,${T.amber},#ff8c00)`,
+  `linear-gradient(135deg,${T.red},${T.violet})`,
+  `linear-gradient(135deg,${T.green},#00a0ff)`,
 ];
 
 const GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1kqnCdclcGpnaVWUXO8BH1BFQtbwVJInqHDji-unrwRc/edit?usp=sharing";
@@ -167,25 +213,21 @@ const ENDPOINTS = [
   {method:"GET",path:"/cdr/analytics/top-callers",desc:"Top callers by volume",auth:true,
    body:`GET /api/v1/cdr/analytics/top-callers?limit=10\n\nResponse 200:\n{\n  "callers": [\n    { "number": "+923001234567", "call_count": 214 }\n  ]\n}`},
   {method:"POST",path:"/auth/login",desc:"Authenticate — returns JWT",auth:false,
-   body:`POST /api/v1/auth/login\nContent-Type: application/json\n\n{\n  "email": "analyst@pinevox.io",\n  "password": "securepass123"\n}\n\nResponse 200:\n{\n  "token": "eyJhbGciOiJIUzI1NiIs...",\n  "role": "analyst",\n  "expires_in": 3600\n}`},
-  {method:"POST",path:"/auth/register",desc:"Create new user (Admin only)",auth:true,
-   body:`POST /api/v1/auth/register\nAuthorization: Bearer <ADMIN_JWT>\n\n{\n  "name": "New Analyst",\n  "email": "new@pinevox.io",\n  "password": "hashed_password",\n  "role": "analyst"\n}\n\nResponse 201:\n{\n  "message": "User created successfully",\n  "userId": "USR-088"\n}`},
+   body:`POST /api/v1/auth/login\nContent-Type: application/json\n\n{\n  "email": "analyst@pinevox.io",\n  "password": "securepass123"\n}\n\nResponse 200:\n{\n  "user": {\n    "id": "uuid",\n    "name": "Analyst User",\n    "email": "analyst@pinevox.io",\n    "role": "analyst"\n  },\n  "token": {\n    "access_token": "eyJhbGciOiJIUzI1NiIs...",\n    "token_type": "bearer",\n    "expires_in_seconds": 86400\n  }\n}`},
+  {method:"POST",path:"/auth/signup",desc:"Create new user account",auth:false,
+   body:`POST /api/v1/auth/signup\nContent-Type: application/json\n\n{\n  "name": "New Analyst",\n  "email": "new@pinevox.io",\n  "password": "securepass123",\n  "role": "analyst"\n}\n\nResponse 201:\n{\n  "user": {\n    "id": "uuid",\n    "name": "New Analyst",\n    "email": "new@pinevox.io",\n    "role": "analyst"\n  },\n  "token": {\n    "access_token": "eyJhbGciOiJIUzI1NiIs...",\n    "token_type": "bearer",\n    "expires_in_seconds": 86400\n  }\n}`},
+  {method:"POST",path:"/auth/users",desc:"Admin creates user",auth:true,
+   body:`POST /api/v1/auth/users\nAuthorization: Bearer <ADMIN_JWT>\nContent-Type: application/json\n\n{\n  "name": "Ops Admin",\n  "email": "ops.admin@pinevox.io",\n  "password": "securepass123",\n  "role": "admin"\n}\n\nResponse 201:\n{\n  "id": "uuid",\n  "name": "Ops Admin",\n  "email": "ops.admin@pinevox.io",\n  "role": "admin"\n}`},
+  {method:"DELETE",path:"/auth/users/{user_id}",desc:"Admin removes user",auth:true,
+   body:`DELETE /api/v1/auth/users/9f58c305-8f8d-4f46-a633-7f45f168e7de\nAuthorization: Bearer <ADMIN_JWT>\n\nResponse 200:\n{\n  "status": "deleted",\n  "user_id": "9f58c305-8f8d-4f46-a633-7f45f168e7de"\n}`},
 ];
 
 /* ─── SMALL COMPONENTS ───────────────────────────────── */
-const Diamond = ({size=28}) => (
-  <div style={{
-    width:size,height:size,
-    background:`linear-gradient(135deg,${T.cyan},${T.violet})`,
-    clipPath:"polygon(50% 0%,100% 50%,50% 100%,0% 50%)",
-    animation:"spin 10s linear infinite",flexShrink:0
-  }}/>
-);
 
 const Tag = ({type}) => {
   const cfg = {
-    Incoming:{bg:"rgba(0,255,176,.1)",color:T.green},
-    Outgoing:{bg:"rgba(0,220,255,.1)",color:T.cyan},
+    Incoming:{bg:"rgba(38,214,161,.1)",color:T.green},
+    Outgoing:{bg:"rgba(44,198,255,.1)",color:T.cyan},
     Missed:{bg:"rgba(244,63,94,.1)",color:T.red},
   };
   const c = cfg[type]||cfg.Outgoing;
@@ -210,7 +252,7 @@ const StatCard = ({icon,value,label,delta,deltaUp,accent}) => (
     <div style={{
       width:36,height:36,borderRadius:9,marginBottom:14,fontSize:18,
       display:"grid",placeItems:"center",
-      background:`${accent}1a`,color:accent,
+      background:"rgba(44,198,255,.14)",color:accent,
     }}>{icon}</div>
     <div style={{fontSize:28,fontWeight:800,lineHeight:1,marginBottom:4}}>{value}</div>
     <div style={{fontSize:11,color:T.muted,fontWeight:600,letterSpacing:".06em",textTransform:"uppercase"}}>{label}</div>
@@ -226,7 +268,7 @@ const Card = ({title,badge,children,style={},rawBadge=false}) => (
       <div style={{fontSize:13,fontWeight:700,letterSpacing:".04em"}}>{title}</div>
       {badge && (
         rawBadge ? badge : (
-          <span style={{fontSize:10,fontFamily:"'JetBrains Mono',monospace",padding:"3px 9px",borderRadius:6,background:"rgba(0,220,255,.1)",color:T.cyan}}>
+          <span style={{fontSize:10,fontFamily:"'JetBrains Mono',monospace",padding:"3px 9px",borderRadius:6,background:"rgba(44,198,255,.1)",color:T.cyan}}>
             {badge}
           </span>
         )
@@ -241,10 +283,10 @@ const BtnPrimary = ({children,onClick,style={}}) => (
     padding:"10px 22px",background:`linear-gradient(135deg,${T.cyan},${T.cyanD})`,
     border:"none",borderRadius:10,color:"#05080f",fontFamily:"'Space Grotesk',sans-serif",
     fontSize:13,fontWeight:800,letterSpacing:".04em",
-    boxShadow:"0 0 24px rgba(0,220,255,.2)",transition:"transform .15s,box-shadow .15s",...style
+    boxShadow:"0 0 24px rgba(44,198,255,.2)",transition:"transform .15s,box-shadow .15s",...style
   }}
-  onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 0 36px rgba(0,220,255,.38)"}}
-  onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="0 0 24px rgba(0,220,255,.2)"}}
+  onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 0 36px rgba(44,198,255,.38)"}}
+  onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="0 0 24px rgba(44,198,255,.2)"}}
   >{children}</button>
 );
 
@@ -254,16 +296,24 @@ const BtnSm = ({children,onClick}) => (
     borderRadius:8,color:T.cyan,fontFamily:"'Space Grotesk',sans-serif",fontSize:12,fontWeight:700,
     transition:"background .2s",
   }}
-  onMouseEnter={e=>e.currentTarget.style.background="rgba(0,220,255,.1)"}
+  onMouseEnter={e=>e.currentTarget.style.background="rgba(44,198,255,.1)"}
   onMouseLeave={e=>e.currentTarget.style.background=T.surf}
   >{children}</button>
+);
+
+const ThemeSparkIcon = ({size=14}) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="2.2"/>
+    <path d="M12 4.6v2.1M12 17.3v2.1M4.6 12h2.1M17.3 12h2.1"/>
+    <path d="M6.9 6.9l1.5 1.5M15.6 15.6l1.5 1.5M17.1 6.9l-1.5 1.5M8.4 15.6l-1.5 1.5"/>
+  </svg>
 );
 
 /* ─── TOAST ──────────────────────────────────────────── */
 const Toast = ({msg,visible}) => (
   <div style={{
     position:"fixed",bottom:28,right:28,zIndex:9999,
-    background:T.surf,border:"1px solid rgba(0,255,176,.3)",
+    background:T.surf,border:"1px solid rgba(38,214,161,.3)",
     borderRadius:12,padding:"14px 18px",
     display:"flex",alignItems:"center",gap:10,
     boxShadow:"0 8px 32px rgba(0,0,0,.5)",fontSize:13,
@@ -276,10 +326,11 @@ const Toast = ({msg,visible}) => (
 );
 
 /* ─── LOGIN PAGE ─────────────────────────────────────── */
-const LoginPage = ({onLogin}) => {
+const LoginPage = ({onLogin,theme,onToggleTheme}) => {
+  const [mode, setMode] = useState("login");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("analyst");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -292,48 +343,88 @@ const LoginPage = ({onLogin}) => {
     return () => clearTimeout(t);
   }, []);
 
-  const handleLogin = () => {
-    if (!email) { setError("Email is required"); return; }
+  const isSignupMode = mode === "signup";
+
+  const switchMode = (nextMode) => {
+    if (loading) return;
+    setMode(nextMode);
+    setError("");
+    setSuccess(false);
+    setFocusedField(null);
+  };
+
+  const handleLogin = async () => {
+    if (loading || success) return;
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedName = name.trim();
+    if (isSignupMode && !normalizedName) { setError("Name is required"); return; }
+    if (!normalizedEmail) { setError("Email is required"); return; }
     if (!password) { setError("Password is required"); return; }
+    if (password.length < 8) { setError("Password must be at least 8 characters"); return; }
+
     setError("");
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+
+    try {
+      const auth = isSignupMode
+        ? await signupRequest({ name: normalizedName, email: normalizedEmail, password, role: "analyst" })
+        : await loginRequest({ email: normalizedEmail, password });
       setSuccess(true);
-      setTimeout(() => onLogin(role), 350);
-    }, 1800);
+      setTimeout(() => onLogin(auth.user), 320);
+    } catch (err) {
+      setError(getApiErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div style={loginS.root}>
-      <div style={{ ...loginS.blob, top: "-100px", left: "-80px", background: "radial-gradient(circle, rgba(251,113,133,0.18) 0%, transparent 70%)" }} />
-      <div style={{ ...loginS.blob, bottom: "-80px", right: "-60px", background: "radial-gradient(circle, rgba(251,146,60,0.13) 0%, transparent 70%)", width: 450, height: 450 }} />
-      <div style={{ ...loginS.blob, top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "radial-gradient(circle, rgba(253,186,116,0.07) 0%, transparent 70%)", width: 600, height: 600 }} />
+      <div style={{ ...loginS.blob, top: "-100px", left: "-80px", background: "radial-gradient(circle, rgba(44,198,255,0.2) 0%, transparent 70%)" }} />
+      <div style={{ ...loginS.blob, bottom: "-80px", right: "-60px", background: "radial-gradient(circle, rgba(138,122,255,0.16) 0%, transparent 70%)", width: 450, height: 450 }} />
+      <div style={{ ...loginS.blob, top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "radial-gradient(circle, rgba(38,214,161,0.1) 0%, transparent 70%)", width: 600, height: 600 }} />
 
       <div style={{ ...loginS.card, opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(20px)", transition: "all 0.6s ease" }}>
 
-        <div style={loginS.themeBtn}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" strokeWidth="2">
-            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-          </svg>
-        </div>
+        <button
+          onClick={onToggleTheme}
+          style={{
+            ...loginS.themeBtn,
+            background: theme === "dark" ? "#ffffff" : "var(--surf2, #0b224e)",
+            border: theme === "dark" ? "2px solid #202b44" : "1px solid var(--border2, rgba(44,198,255,0.55))",
+          }}
+          aria-label="Toggle theme"
+          title="Toggle theme"
+        >
+          <span style={{display:"grid",placeItems:"center",color:"var(--cyan, #2cc6ff)"}} aria-hidden="true">
+            <ThemeSparkIcon size={14}/>
+          </span>
+        </button>
 
         <div style={loginS.titleBlock}>
-          <h1 style={loginS.title}>Welcome Back</h1>
-          <p style={loginS.subtitle}>Login to access your dashboard 🚀</p>
+          <h1 style={loginS.title}>{isSignupMode ? "Create Account" : "Welcome Back"}</h1>
         </div>
 
-        <div style={loginS.roleWrap}>
-          <div style={{ ...loginS.roleSlider, left: role === "analyst" ? 4 : "calc(50% + 2px)" }} />
-          {["analyst", "admin"].map(r => (
-            <button key={r} onClick={() => setRole(r)} style={{ ...loginS.roleBtn, color: role === r ? "#fff" : "#c4909a" }}>
-              {r}
-            </button>
-          ))}
-        </div>
+        {isSignupMode && (
+          <div style={loginS.inputWrap(focusedField === "name", false)}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={focusedField === "name" ? "var(--cyan, #2cc6ff)" : "var(--muted, #8ea9d3)"} strokeWidth="2">
+              <circle cx="12" cy="8" r="4"/><path d="M4 20c2-4 5-6 8-6s6 2 8 6"/>
+            </svg>
+            <input
+              type="text"
+              value={name}
+              onChange={e => { setName(e.target.value); setError(""); }}
+              onFocus={() => setFocusedField("name")}
+              onBlur={() => setFocusedField(null)}
+              placeholder="Full name"
+              style={loginS.input}
+            />
+          </div>
+        )}
 
         <div style={loginS.inputWrap(focusedField === "email", false)}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={focusedField === "email" ? "#f43f5e" : "#c4b5bd"} strokeWidth="2">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={focusedField === "email" ? "var(--cyan, #2cc6ff)" : "var(--muted, #8ea9d3)"} strokeWidth="2">
             <rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/>
           </svg>
           <input
@@ -348,7 +439,7 @@ const LoginPage = ({onLogin}) => {
         </div>
 
         <div style={loginS.inputWrap(focusedField === "password", !!error)}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={error ? "#f87171" : focusedField === "password" ? "#f43f5e" : "#c4b5bd"} strokeWidth="2">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={error ? "var(--red, #ff6b9d)" : focusedField === "password" ? "var(--cyan, #2cc6ff)" : "var(--muted, #8ea9d3)"} strokeWidth="2">
             <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
           </svg>
           <input
@@ -361,7 +452,7 @@ const LoginPage = ({onLogin}) => {
             style={loginS.input}
           />
           <span onClick={() => setShowPassword(!showPassword)} style={loginS.eyeBtn}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c4b5bd" strokeWidth="2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted, #8ea9d3)" strokeWidth="2">
               {showPassword
                 ? <><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></>
                 : <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></>
@@ -372,12 +463,12 @@ const LoginPage = ({onLogin}) => {
 
         {error && (
           <div style={loginS.errorBox}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="#f43f5e">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="var(--red, #ff6b9d)">
               <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
               <line x1="12" y1="9" x2="12" y2="13" stroke="white" strokeWidth="2"/><circle cx="12" cy="17" r="1" fill="white"/>
             </svg>
             <div>
-              <div style={loginS.errorTitle}>Login Error</div>
+              <div style={loginS.errorTitle}>{isSignupMode ? "Signup Error" : "Login Error"}</div>
               <div style={loginS.errorMsg}>{error}</div>
             </div>
           </div>
@@ -387,24 +478,30 @@ const LoginPage = ({onLogin}) => {
           {success ? (
             <span style={loginS.btnRow}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-              Access Granted
+              {isSignupMode ? "Account Created" : "Access Granted"}
             </span>
           ) : loading ? (
-            <span style={loginS.btnRow}><span style={loginS.spinner} /> Signing in…</span>
-          ) : "Login"}
+            <span style={loginS.btnRow}><span style={loginS.spinner} /> {isSignupMode ? "Creating account..." : "Signing in..."}</span>
+          ) : (isSignupMode ? "Sign Up" : "Login")}
         </button>
 
         <p style={loginS.signupText}>
-          Don&apos;t have an account?{" "}
-          <span style={loginS.signupLink}>Sign Up</span>
+          {isSignupMode ? "Already have an account?" : "Don't have an account?"}{" "}
+          <button
+            type="button"
+            style={loginS.signupSwitchBtn}
+            onClick={() => switchMode(isSignupMode ? "login" : "signup")}
+          >
+            {isSignupMode ? "Login" : "Sign Up"}
+          </button>
         </p>
       </div>
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700;800&display=swap');
         input:focus { outline: none; }
         button:focus { outline: none; }
-        input::placeholder { color: #d4b8be; }
+        input::placeholder { color: var(--muted, #8ea9d3); }
         @keyframes errorSlide { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
       `}</style>
     </div>
@@ -414,11 +511,11 @@ const LoginPage = ({onLogin}) => {
 const loginS = {
   root: {
     minHeight: "100vh",
-    background: "#fff5f6",
+    background: "linear-gradient(180deg, var(--bg, #030c24) 0%, var(--surf2, #0b224e) 100%)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontFamily: "'Inter', sans-serif",
+    fontFamily: "'Space Grotesk', sans-serif",
     position: "relative",
     overflow: "hidden",
   },
@@ -429,12 +526,12 @@ const loginS = {
     pointerEvents: "none",
   },
   card: {
-    width: 360,
-    background: "#ffffff",
+    width: 370,
+    background: "var(--surf, #081a3d)",
     borderRadius: 24,
-    padding: "32px 28px 28px",
-    boxShadow: "0 8px 32px rgba(244,63,94,0.1), 0 2px 8px rgba(0,0,0,0.05)",
-    border: "1px solid rgba(244,63,94,0.1)",
+    padding: "34px 30px 28px",
+    boxShadow: "0 8px 32px rgba(44,198,255,0.18), 0 2px 8px rgba(0,0,0,0.24)",
+    border: "1px solid var(--border, rgba(70,130,220,0.28))",
     position: "relative",
     zIndex: 1,
   },
@@ -443,10 +540,11 @@ const loginS = {
     top: 20, right: 20,
     width: 34, height: 34,
     borderRadius: "50%",
-    background: "#fff0f2",
-    display: "flex", alignItems: "center", justifyContent: "center",
+    background: "var(--surf2, #0b224e)",
+    display: "grid", placeItems: "center",
     cursor: "pointer",
-    border: "1px solid rgba(244,63,94,0.15)",
+    border: "1px solid var(--border2, rgba(44,198,255,0.55))",
+    outline: "none",
   },
   titleBlock: {
     textAlign: "center",
@@ -456,33 +554,33 @@ const loginS = {
   title: {
     fontSize: 26,
     fontWeight: 800,
-    color: "#1f1215",
+    color: "var(--text, #e9f4ff)",
     letterSpacing: "-0.02em",
     marginBottom: 6,
   },
   subtitle: {
     fontSize: 13,
-    color: "#b08a92",
+    color: "var(--muted, #8ea9d3)",
   },
   roleWrap: {
     position: "relative",
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
-    background: "#fce8ec",
+    background: "var(--surf2, #0b224e)",
     borderRadius: 12,
     padding: 4,
     marginBottom: 20,
-    height: 44,
+    height: 46,
   },
   roleSlider: {
     position: "absolute",
     top: 4,
     width: "calc(50% - 6px)",
     height: "calc(100% - 8px)",
-    background: "linear-gradient(135deg, #f43f5e, #fb923c)",
+    background: "linear-gradient(135deg, var(--cyan, #2cc6ff), var(--cyanD, #1d8be8))",
     borderRadius: 9,
     transition: "left 0.28s cubic-bezier(0.4,0,0.2,1)",
-    boxShadow: "0 2px 10px rgba(244,63,94,0.4)",
+    boxShadow: "0 2px 10px rgba(44,198,255,0.35)",
   },
   roleBtn: {
     position: "relative",
@@ -491,7 +589,7 @@ const loginS = {
     border: "none",
     fontSize: 14,
     fontWeight: 600,
-    fontFamily: "'Inter', sans-serif",
+    fontFamily: "'Space Grotesk', sans-serif",
     cursor: "pointer",
     borderRadius: 9,
     transition: "color 0.25s ease",
@@ -502,21 +600,21 @@ const loginS = {
     alignItems: "center",
     gap: 10,
     padding: "0 14px",
-    border: `1.5px solid ${isErr ? "#fca5a5" : focused ? "#f43f5e" : "#f2dde0"}`,
+    border: `1.5px solid ${isErr ? "var(--red, #ff6b9d)" : focused ? "var(--cyan, #2cc6ff)" : "var(--border, rgba(70,130,220,0.28))"}`,
     borderRadius: 12,
-    background: isErr ? "#fff5f5" : focused ? "#fffafa" : "#fdf8f8",
+    background: isErr ? "rgba(255,107,157,0.08)" : focused ? "var(--surf3, #122d63)" : "var(--surf2, #0b224e)",
     marginBottom: 12,
     height: 50,
     transition: "border-color 0.2s, box-shadow 0.2s, background 0.2s",
-    boxShadow: focused && !isErr ? "0 0 0 3px rgba(244,63,94,0.1)" : isErr ? "0 0 0 3px rgba(248,113,113,0.1)" : "none",
+    boxShadow: focused && !isErr ? "0 0 0 3px rgba(44,198,255,0.14)" : isErr ? "0 0 0 3px rgba(255,107,157,0.14)" : "none",
   }),
   input: {
     flex: 1,
     border: "none",
     background: "transparent",
     fontSize: 14,
-    color: "#1f1215",
-    fontFamily: "'Inter', sans-serif",
+    color: "var(--text, #e9f4ff)",
+    fontFamily: "'Space Grotesk', sans-serif",
   },
   eyeBtn: {
     cursor: "pointer",
@@ -529,8 +627,8 @@ const loginS = {
     alignItems: "flex-start",
     gap: 10,
     padding: "12px 14px",
-    background: "#fff0f2",
-    border: "1px solid #fecdd3",
+    background: "rgba(255,107,157,0.1)",
+    border: "1px solid rgba(255,107,157,0.3)",
     borderRadius: 10,
     marginBottom: 16,
     animation: "errorSlide 0.3s ease",
@@ -538,25 +636,25 @@ const loginS = {
   errorTitle: {
     fontSize: 13,
     fontWeight: 600,
-    color: "#f43f5e",
+    color: "var(--red, #ff6b9d)",
     marginBottom: 2,
   },
   errorMsg: {
     fontSize: 12,
-    color: "#fb7185",
+    color: "var(--red, #ff6b9d)",
   },
   loginBtn: {
     width: "100%",
     height: 50,
     borderRadius: 12,
     border: "none",
-    background: "linear-gradient(135deg, #f43f5e 0%, #fb7185 50%, #fb923c 100%)",
+    background: "linear-gradient(135deg, var(--cyan, #2cc6ff) 0%, var(--cyanD, #1d8be8) 55%, var(--violet, #8a7aff) 100%)",
     color: "#fff",
     fontSize: 16,
     fontWeight: 700,
-    fontFamily: "'Inter', sans-serif",
+    fontFamily: "'Space Grotesk', sans-serif",
     cursor: "pointer",
-    boxShadow: "0 4px 18px rgba(244,63,94,0.4)",
+    boxShadow: "0 4px 18px rgba(44,198,255,0.28)",
     transition: "all 0.25s ease",
     marginBottom: 20,
   },
@@ -578,53 +676,77 @@ const loginS = {
   signupText: {
     textAlign: "center",
     fontSize: 13,
-    color: "#b08a92",
+    color: "var(--muted, #8ea9d3)",
   },
   signupLink: {
-    color: "#f43f5e",
+    color: "var(--cyan, #2cc6ff)",
     fontWeight: 600,
     cursor: "pointer",
+  },
+  signupSwitchBtn: {
+    border: "none",
+    background: "transparent",
+    color: "var(--cyan, #2cc6ff)",
+    fontWeight: 600,
+    cursor: "pointer",
+    fontFamily: "'Space Grotesk', sans-serif",
+    fontSize: 13,
+    padding: 0,
   },
 };
 
 /* ─── TOPBAR ─────────────────────────────────────────── */
-const Topbar = ({page,role,onLogout}) => {
-  const pageNames = {dashboard:"Dashboard",cdr:"CDR Records",callers:"Top Callers",users:"User Management",api:"API Reference"};
+const Topbar = ({role,userName,theme,onToggleTheme}) => {
+  const displayName = (userName || "").trim() || (role==="admin" ? "Admin User" : "Analyst User");
+  const initials = displayName
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
   return (
     <div style={{
       display:"flex",alignItems:"center",padding:"0 28px",height:56,
-      borderBottom:`1px solid ${T.border}`,background:"rgba(5,8,15,.92)",
+      borderBottom:`1px solid ${T.border}`,background:T.surf,
       backdropFilter:"blur(20px)",position:"sticky",top:0,zIndex:100,gap:20,
     }}>
-      <div style={{display:"flex",alignItems:"center",gap:10}}>
-        <Diamond size={24}/>
-        <span style={{fontSize:16,fontWeight:800,letterSpacing:".08em",color:T.cyan}}>PINEVOX</span>
-      </div>
-      <div style={{width:1,height:28,background:T.border}}/>
-      <span style={{fontSize:12,fontWeight:600,color:T.muted,letterSpacing:".06em",textTransform:"uppercase"}}>{pageNames[page]}</span>
+      <span style={{fontSize:12,fontWeight:600,color:T.muted,letterSpacing:".06em"}}>telecom-intelligence-platform</span>
 
       <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:14}}>
-        <div style={{display:"flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:20,background:"rgba(0,255,176,.08)",border:"1px solid rgba(0,255,176,.2)",fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:T.green}}>
-          <div style={{width:6,height:6,borderRadius:"50%",background:T.green,animation:"pulse 2s infinite"}}/>
-          API LIVE
-        </div>
+        <button
+          onClick={onToggleTheme}
+          aria-label="Toggle theme"
+          title="Toggle theme"
+          style={{
+            width:34,
+            height:32,
+            borderRadius:8,
+            border: theme === "dark" ? "2px solid #202b44" : `1px solid ${T.border2}`,
+            background: theme === "dark" ? "#ffffff" : T.surf,
+            color:T.cyan,
+            fontFamily:"'Space Grotesk',sans-serif",
+            fontSize:16,
+            fontWeight:600,
+            display:"grid",
+            placeItems:"center",
+            transition:"all .2s",
+          }}
+          onMouseEnter={e=>{e.currentTarget.style.borderColor=T.cyan;}}
+          onMouseLeave={e=>{e.currentTarget.style.borderColor=theme === "dark" ? "#202b44" : T.border2;}}
+        >
+          <ThemeSparkIcon size={14}/>
+        </button>
         <div style={{display:"flex",alignItems:"center",gap:8,padding:"6px 12px 6px 6px",borderRadius:24,background:T.surf,border:`1px solid ${T.border}`}}>
           <div style={{width:28,height:28,borderRadius:"50%",background:`linear-gradient(135deg,${T.cyan},${T.violet})`,display:"grid",placeItems:"center",fontSize:11,fontWeight:700,color:"#05080f"}}>
-            {role==="admin"?"A":"AN"}
+            {initials || (role==="admin" ? "A" : "AN")}
           </div>
           <div>
-            <div style={{fontSize:12,fontWeight:600}}>{role==="admin"?"Admin User":"Analyst User"}</div>
+            <div style={{fontSize:12,fontWeight:600}}>{displayName}</div>
             <div style={{fontSize:10,color:T.muted,fontFamily:"'JetBrains Mono',monospace"}}>{role}</div>
           </div>
         </div>
-        <button onClick={onLogout} style={{
-          padding:"6px 14px",borderRadius:8,border:`1px solid ${T.border}`,
-          background:"transparent",color:T.muted,fontFamily:"'Space Grotesk',sans-serif",fontSize:12,fontWeight:600,
-          transition:"all .2s",
-        }}
-        onMouseEnter={e=>{e.currentTarget.style.borderColor=T.red;e.currentTarget.style.color=T.red}}
-        onMouseLeave={e=>{e.currentTarget.style.borderColor=T.border;e.currentTarget.style.color=T.muted}}
-        >Logout</button>
       </div>
     </div>
   );
@@ -633,40 +755,65 @@ const Topbar = ({page,role,onLogout}) => {
 /* ─── SIDEBAR ────────────────────────────────────────── */
 const NAV = [
   {id:"dashboard",icon:"▦",label:"Dashboard",section:"Analytics"},
-  {id:"cdr",icon:"☰",label:"CDR Records",badge:"2.4k",section:"Analytics"},
-  {id:"callers",icon:"✆",label:"Top Callers",section:"Analytics"},
   {id:"users",icon:"⚇",label:"Users",section:"Management",adminOnly:true},
-  {id:"api",icon:"⌥",label:"API Reference",section:"Management"},
+  {id:"settings",icon:"⚙",label:"Settings",section:"Management"},
+  {id:"api",icon:"⌥",label:"API Reference",section:"Management",adminOnly:true},
 ];
 
-const Sidebar = ({page,setPage,role}) => {
+const Sidebar = ({page,setPage,role,onLogout}) => {
   const sections = [...new Set(NAV.map(n=>n.section))];
   return (
-    <aside style={{borderRight:`1px solid ${T.border}`,padding:"20px 0",background:"rgba(11,18,32,.5)",display:"flex",flexDirection:"column"}}>
-      {sections.map(sec=>(
-        <div key={sec} style={{padding:"0 16px",marginBottom:24}}>
-          <div style={{fontSize:10,fontWeight:700,letterSpacing:".12em",color:T.muted,textTransform:"uppercase",padding:"0 8px",marginBottom:8}}>{sec}</div>
-          {NAV.filter(n=>n.section===sec&&(!n.adminOnly||role==="admin")).map(n=>(
-            <div key={n.id} onClick={()=>setPage(n.id)} style={{
-              display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:10,
-              cursor:"pointer",fontSize:13,fontWeight:600,marginBottom:2,
-              color:page===n.id?T.cyan:T.muted,
-              background:page===n.id?"rgba(0,220,255,.08)":"transparent",
-              border:page===n.id?`1px solid rgba(0,220,255,.18)`:"1px solid transparent",
-              transition:"all .18s",
-            }}
-            onMouseEnter={e=>{if(page!==n.id){e.currentTarget.style.background="rgba(0,220,255,.05)";e.currentTarget.style.color=T.cyan}}}
-            onMouseLeave={e=>{if(page!==n.id){e.currentTarget.style.background="transparent";e.currentTarget.style.color=T.muted}}}
-            >
-              <span style={{fontSize:14}}>{n.icon}</span>
-              {n.label}
-              {n.badge&&<span style={{marginLeft:"auto",padding:"2px 7px",borderRadius:8,background:"rgba(0,220,255,.12)",color:T.cyan,fontSize:10,fontWeight:700,fontFamily:"'JetBrains Mono',monospace"}}>{n.badge}</span>}
-            </div>
-          ))}
-        </div>
-      ))}
-      <div style={{marginTop:"auto",padding:16}}>
-        <div style={{padding:"10px 12px",borderRadius:10,background:"rgba(0,255,176,.06)",border:"1px solid rgba(0,255,176,.12)",fontFamily:"'JetBrains Mono',monospace",fontSize:10}}>
+    <aside style={{borderRight:`1px solid ${T.border}`,padding:"20px 0 0",background:T.surf2,display:"flex",flexDirection:"column",minHeight:0,height:"100%",overflow:"hidden"}}>
+      <div style={{flex:1,overflowY:"auto",paddingBottom:12}}>
+        {sections.map(sec=>(
+          <div key={sec} style={{padding:"0 16px",marginBottom:24}}>
+            <div style={{fontSize:10,fontWeight:700,letterSpacing:".12em",color:T.muted,textTransform:"uppercase",padding:"0 8px",marginBottom:8}}>{sec}</div>
+            {NAV.filter(n=>n.section===sec&&(!n.adminOnly||role==="admin")).map(n=>(
+              <div key={n.id} onClick={()=>setPage(n.id)} style={{
+                display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:10,
+                cursor:"pointer",fontSize:13,fontWeight:600,marginBottom:2,
+                color:page===n.id?T.cyan:T.muted,
+                background:page===n.id?"rgba(44,198,255,.14)":"transparent",
+                border:page===n.id?`1px solid rgba(44,198,255,.35)`:"1px solid transparent",
+                transition:"all .18s",
+              }}
+              onMouseEnter={e=>{if(page!==n.id){e.currentTarget.style.background="rgba(44,198,255,.1)";e.currentTarget.style.color=T.cyan}}}
+              onMouseLeave={e=>{if(page!==n.id){e.currentTarget.style.background="transparent";e.currentTarget.style.color=T.muted}}}
+              >
+                <span style={{fontSize:14}}>{n.icon}</span>
+                {n.label}
+                {n.badge&&<span style={{marginLeft:"auto",padding:"2px 7px",borderRadius:8,background:"rgba(44,198,255,.12)",color:T.cyan,fontSize:10,fontWeight:700,fontFamily:"'JetBrains Mono',monospace"}}>{n.badge}</span>}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+
+      <div style={{padding:16,display:"flex",flexDirection:"column",gap:10,borderTop:`1px solid ${T.border}`}}>
+        <button
+          onClick={onLogout}
+          style={{
+            display:"flex",
+            alignItems:"center",
+            justifyContent:"center",
+            gap:8,
+            width:"100%",
+            padding:"10px 12px",
+            borderRadius:10,
+            border:`1px solid ${T.border2}`,
+            background:T.surf,
+            color:T.cyan,
+            fontFamily:"'Space Grotesk',sans-serif",
+            fontSize:13,
+            fontWeight:700,
+            transition:"all .2s",
+          }}
+          onMouseEnter={e=>{e.currentTarget.style.borderColor=T.red;e.currentTarget.style.color=T.red;}}
+          onMouseLeave={e=>{e.currentTarget.style.borderColor=T.border2;e.currentTarget.style.color=T.cyan;}}
+        >
+          ⎋ Logout
+        </button>
+        <div style={{padding:"10px 12px",borderRadius:10,background:"rgba(38,214,161,.06)",border:"1px solid rgba(38,214,161,.12)",fontFamily:"'JetBrains Mono',monospace",fontSize:10}}>
           <div style={{color:T.muted,marginBottom:4}}>Backend Status</div>
           <div style={{color:T.green}}>✓ All systems operational</div>
           <div style={{marginTop:6,color:T.muted}}>JWT Auth · REST API · v2.1.4</div>
@@ -678,111 +825,313 @@ const Sidebar = ({page,setPage,role}) => {
 
 /* ─── DASHBOARD PAGE ─────────────────────────────────── */
 const Dashboard = ({setPage,showToast,cdrData}) => {
-  const cityData = [
-    {city:"Karachi",count:14821,pct:88,color:T.cyan},
-    {city:"Lahore",count:11204,pct:72,color:T.violet},
-    {city:"Islamabad",count:8940,pct:55,color:T.green},
-    {city:"Rawalpindi",count:6112,pct:40,color:T.amber},
-    {city:"Peshawar",count:4509,pct:28,color:"#ff7b4f"},
-    {city:"Multan",count:2705,pct:18,color:"#4fbfff"},
+  const [cityFilter, setCityFilter] = useState("all");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [logsPage, setLogsPage] = useState(1);
+
+  const nameSeeds = ["Alice","Maya","Noah","Liam","Ava","Ethan","Zoya","Aiden","Sofia","Mason"];
+  const surnameSeeds = ["Johnson","Walker","Singh","Khan","Ali","Scott","Brown","Smith","Clark","Taylor"];
+  const parsed = useMemo(() => (
+    cdrData.map((r, i) => {
+      const dt = new Date(String(r.datetime || "").replace(" ", "T"));
+      const date = Number.isNaN(dt.getTime()) ? new Date() : dt;
+      const day = `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
+      const syntheticCost = Number(((r.duration / 60) * 0.92 + ((i % 6) + 1) * 0.19).toFixed(2));
+      const syntheticSuccess = i % 11 !== 0;
+      const callerName = `${nameSeeds[i % nameSeeds.length]} ${surnameSeeds[(i * 3) % surnameSeeds.length]}`;
+      return { ...r, _date: date, _day: day, _cost: syntheticCost, _success: syntheticSuccess, _callerName: callerName };
+    })
+  ), [cdrData]);
+
+  const cityOptions = useMemo(() => (["all", ...Array.from(new Set(parsed.map(r => r.city))).sort()]), [parsed]);
+  const filtered = useMemo(() => (
+    parsed.filter((r) => {
+      if (cityFilter !== "all" && r.city !== cityFilter) return false;
+      if (fromDate && r._day < fromDate) return false;
+      if (toDate && r._day > toDate) return false;
+      return true;
+    })
+  ), [parsed, cityFilter, fromDate, toDate]);
+
+  useEffect(() => { setLogsPage(1); }, [cityFilter, fromDate, toDate, rowsPerPage]);
+
+  const totalCalls = filtered.length;
+  const totalDuration = filtered.reduce((a, r) => a + (r.duration || 0), 0);
+  const totalCost = filtered.reduce((a, r) => a + (r._cost || 0), 0);
+  const avgDuration = totalCalls ? Math.round(totalDuration / totalCalls) : 0;
+  const successfulCalls = filtered.filter(r => r._success).length;
+  const failedCalls = totalCalls - successfulCalls;
+  const longestCall = filtered.length ? Math.max(...filtered.map(r => r.duration || 0)) : 0;
+  const shortestCall = filtered.length ? Math.min(...filtered.map(r => r.duration || 0)) : 0;
+
+  const dailyMap = {};
+  filtered.forEach((r) => { dailyMap[r._day] = (dailyMap[r._day] || 0) + 1; });
+  const [peakDay, peakCount] = Object.entries(dailyMap).sort((a,b)=>b[1]-a[1])[0] || ["-", 0];
+
+  const durationBars = [
+    { label: "Shortest", value: shortestCall, color: T.cyan },
+    { label: "Average", value: avgDuration, color: T.violet },
+    { label: "Longest", value: longestCall, color: T.amber },
   ];
-  const PREVIEW_PER = 6;
-  const [previewPage, setPreviewPage] = useState(1);
-  const previewTotalPages = Math.max(1, Math.ceil(cdrData.length / PREVIEW_PER));
-  useEffect(() => {
-    setPreviewPage(p => Math.min(p, previewTotalPages));
-  }, [previewTotalPages]);
-  const preview = useMemo(() => {
-    const start = (previewPage - 1) * PREVIEW_PER;
-    return cdrData.slice(start, start + PREVIEW_PER);
-  }, [cdrData, previewPage]);
+  const maxDurationBar = Math.max(1, ...durationBars.map(x => x.value));
+
+  const cityCostMap = {};
+  filtered.forEach((r) => { cityCostMap[r.city] = (cityCostMap[r.city] || 0) + r._cost; });
+  const costBars = Object.entries(cityCostMap)
+    .sort((a,b)=>b[1]-a[1])
+    .slice(0,5)
+    .map(([city, cost], i) => ({ city, cost, color: [T.cyan, T.green, T.violet, T.amber, T.red][i] }));
+  const maxCostBar = Math.max(1, ...costBars.map(x => x.cost));
+
+  const activityHours = Array(24).fill(0);
+  filtered.forEach((r) => { activityHours[r._date.getHours()] += 1; });
+  const timelineX = Array.from({length:12},(_,i)=>i*2);
+  const timelineY = timelineX.map(h => activityHours[h]);
+  const maxTimeline = Math.max(1, ...timelineY);
+  const timelinePoints = timelineY
+    .map((v,i) => `${16 + i * 24},${82 - Math.round((v / maxTimeline) * 52)}`)
+    .join(" ");
+
+  const cityCountMap = {};
+  filtered.forEach((r) => { cityCountMap[r.city] = (cityCountMap[r.city] || 0) + 1; });
+  const citySlicesRaw = Object.entries(cityCountMap).sort((a,b)=>b[1]-a[1]);
+  const topCitySlices = citySlicesRaw.slice(0,5);
+  const otherCount = citySlicesRaw.slice(5).reduce((a,[,n])=>a+n,0);
+  const citySlices = [...topCitySlices, ...(otherCount > 0 ? [["Others", otherCount]] : [])]
+    .map(([city, count], i) => ({ city, count, color: [T.cyan, T.green, T.violet, T.amber, T.red, "#5be6d0"][i] }));
+  const cityTotal = citySlices.reduce((a, s) => a + s.count, 0) || 1;
+  const donutCirc = 2 * Math.PI * 32;
+  let dashOffsetAcc = 0;
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / rowsPerPage));
+  useEffect(() => { setLogsPage(p => Math.min(p, totalPages)); }, [totalPages]);
+  const rows = filtered.slice((logsPage - 1) * rowsPerPage, logsPage * rowsPerPage);
+  const rangeStart = totalCalls ? (logsPage - 1) * rowsPerPage + 1 : 0;
+  const rangeEnd = Math.min(logsPage * rowsPerPage, totalCalls);
+
+  const fmtMoney = (n) => `£${Number(n || 0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+  const fmtSecs = (s) => `${Math.floor((s || 0)/60)}m ${pad((s || 0)%60)}s`;
+
+  const panel = {
+    background:T.surf,
+    border:`1px solid ${T.border}`,
+    borderRadius:12,
+  };
+  const filterUiFont = "'Space Grotesk', sans-serif";
 
   return (
-    <div style={{animation:"fadeUp .4s ease both"}}>
-      <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:28}}>
-        <div>
-          <div style={{fontSize:24,fontWeight:800}}>Network Overview</div>
-          <div style={{color:T.muted,fontFamily:"'JetBrains Mono',monospace",fontSize:11,marginTop:4}}>// Real-time CDR analytics · Updated 2 min ago</div>
+    <div style={{animation:"fadeUp .35s ease both"}}>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+        <div style={{fontSize:14,fontWeight:700,letterSpacing:".05em"}}>Welcome</div>
+        <div style={{fontSize:10,color:T.muted,fontFamily:"'JetBrains Mono',monospace"}}>Realtime View</div>
+      </div>
+
+      <div style={{...panel,padding:"10px 12px",marginBottom:10}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10,marginBottom:6}}>
+          <div style={{display:"grid",gridTemplateColumns:"2.1fr 1.2fr 1.2fr auto",gap:8,alignItems:"end",flex:1}}>
+            <div>
+              <div style={{fontSize:10,color:T.muted,marginBottom:5,fontWeight:700,letterSpacing:".06em",fontFamily:filterUiFont}}>City</div>
+              <select
+                value={cityFilter}
+                onChange={(e)=>setCityFilter(e.target.value)}
+                style={{width:"100%",height:40,padding:"0 12px",borderRadius:10,border:`1px solid ${T.border2}`,background:T.surf2,color:T.cyan,fontSize:14,fontWeight:700,fontFamily:filterUiFont}}
+              >
+                {cityOptions.map(c => <option key={c} value={c}>{c === "all" ? "All Cities" : c}</option>)}
+              </select>
+            </div>
+            <div>
+              <div style={{fontSize:10,color:T.muted,marginBottom:5,fontWeight:700,letterSpacing:".06em",fontFamily:filterUiFont}}>From</div>
+              <input
+                type="date"
+                value={fromDate}
+                onChange={(e)=>setFromDate(e.target.value)}
+                style={{height:40,padding:"0 12px",borderRadius:10,border:`1px solid ${T.border}`,background:T.surf2,color:T.text,fontSize:14,fontWeight:600,fontFamily:filterUiFont}}
+              />
+            </div>
+            <div>
+              <div style={{fontSize:10,color:T.muted,marginBottom:5,fontWeight:700,letterSpacing:".06em",fontFamily:filterUiFont}}>To</div>
+              <input
+                type="date"
+                value={toDate}
+                onChange={(e)=>setToDate(e.target.value)}
+                style={{height:40,padding:"0 12px",borderRadius:10,border:`1px solid ${T.border}`,background:T.surf2,color:T.text,fontSize:14,fontWeight:600,fontFamily:filterUiFont}}
+              />
+            </div>
+            <button
+              onClick={() => { setCityFilter("all"); setFromDate(""); setToDate(""); }}
+              style={{height:40,padding:"0 14px",borderRadius:10,border:`1px solid ${T.border2}`,background:"rgba(44,198,255,.08)",color:T.cyan,fontSize:13,fontWeight:700,whiteSpace:"nowrap",fontFamily:filterUiFont}}
+            >
+              Reset Filters
+            </button>
+          </div>
+          <div style={{fontSize:10,color:T.muted,fontFamily:filterUiFont,paddingTop:2,whiteSpace:"nowrap"}}>
+            {totalCalls} records in range
+          </div>
         </div>
-        <BtnSm onClick={()=>showToast("Generating export report…")}>↓ Export Report</BtnSm>
       </div>
 
-      {/* Stats */}
-      <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:16,marginBottom:24}}>
-        <StatCard icon="📞" value="48,291" label="Total Calls" delta="12.4% vs last week" deltaUp accent={T.cyan}/>
-        <StatCard icon="⏱" value="1.2M" label="Duration (min)" delta="8.1% vs last week" deltaUp accent={T.green}/>
-        <StatCard icon="📍" value="134" label="Active Locations" delta="3 new cities" deltaUp accent={T.violet}/>
-        <StatCard icon="⚠" value="217" label="Missed Calls" delta="5.2% improvement" deltaUp={false} accent={T.amber}/>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(5,minmax(0,1fr))",gap:10,marginBottom:10}}>
+        {[
+          {label:"Total Calls", value: totalCalls, color:T.cyan},
+          {label:"Total Call Cost", value: fmtMoney(totalCost), color:T.green},
+          {label:"Average Call Duration", value: `${Math.round(avgDuration)}s`, color:T.violet},
+          {label:"Total Successful Calls", value: successfulCalls, color:T.green},
+          {label:"Total Failed Calls", value: failedCalls, color:T.red},
+        ].map((k)=>(
+          <div key={k.label} style={{...panel,padding:"10px 12px"}}>
+            <div style={{display:"flex",alignItems:"center",gap:6,color:T.muted,fontSize:10,marginBottom:10}}>
+              <span style={{width:8,height:8,borderRadius:"50%",background:k.color,display:"inline-block"}}/>
+              {k.label}
+            </div>
+            <div style={{fontSize:26,fontWeight:800,lineHeight:1,color:T.text}}>{k.value}</div>
+          </div>
+        ))}
       </div>
 
-      {/* Charts row */}
-      <div style={{display:"grid",gridTemplateColumns:"1fr 300px",gap:20,marginBottom:24}}>
-        <Card title="CALLS BY CITY" badge="TOP 6">
-          <div style={{display:"flex",flexDirection:"column",gap:12}}>
-            {cityData.map(c=>(
-              <div key={c.city} style={{display:"flex",alignItems:"center",gap:12}}>
-                <div style={{fontSize:11,fontFamily:"'JetBrains Mono',monospace",color:T.muted,width:80,flexShrink:0}}>{c.city}</div>
-                <div style={{flex:1,height:8,background:T.surf3,borderRadius:4,overflow:"hidden"}}>
-                  <div style={{height:"100%",width:`${c.pct}%`,borderRadius:4,background:`linear-gradient(90deg,${c.color},${c.color}88)`,transition:"width 1s cubic-bezier(.4,0,.2,1)"}}/>
-                </div>
-                <div style={{fontSize:11,fontFamily:"'JetBrains Mono',monospace",width:48,textAlign:"right"}}>{c.count.toLocaleString()}</div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1.45fr",gap:10,marginBottom:10}}>
+        <div style={{...panel,padding:"10px 12px"}}>
+          <div style={{fontSize:13,fontWeight:700,marginBottom:8}}>Call Duration Analytics</div>
+          <div style={{height:120,display:"flex",alignItems:"flex-end",justifyContent:"space-around",gap:10,padding:"0 8px 6px"}}>
+            {durationBars.map((b)=>(
+              <div key={b.label} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,flex:1}}>
+                <div style={{width:"75%",height:Math.max(10,Math.round((b.value/maxDurationBar)*96)),background:b.color,borderRadius:6}}/>
+                <div style={{fontSize:9,color:T.muted,fontFamily:"'JetBrains Mono',monospace"}}>{b.label}</div>
               </div>
             ))}
           </div>
-        </Card>
+        </div>
 
-        <Card title="CALL TYPE DISTRIBUTION">
-          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:16}}>
-            <svg viewBox="0 0 100 100" width={140} height={140}>
-              <circle cx="50" cy="50" r="38" fill="none" stroke={T.surf3} strokeWidth="14"/>
-              <circle cx="50" cy="50" r="38" fill="none" stroke={T.cyan} strokeWidth="14"
-                strokeDasharray="124 239" strokeDashoffset="60" strokeLinecap="round"/>
-              <circle cx="50" cy="50" r="38" fill="none" stroke={T.violet} strokeWidth="14"
-                strokeDasharray="86 239" strokeDashoffset="-64" strokeLinecap="round"/>
-              <circle cx="50" cy="50" r="38" fill="none" stroke={T.red} strokeWidth="14"
-                strokeDasharray="29 239" strokeDashoffset="-150" strokeLinecap="round"/>
-              <text x="50" y="47" textAnchor="middle" fill={T.text} fontSize="14" fontWeight="800" fontFamily="Space Grotesk">48K</text>
-              <text x="50" y="59" textAnchor="middle" fill={T.muted} fontSize="7" fontFamily="JetBrains Mono">total calls</text>
+        <div style={{...panel,padding:"10px 12px"}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
+            <div style={{fontSize:13,fontWeight:700}}>Call Cost Analysis</div>
+            <div style={{fontSize:9,color:T.muted,fontFamily:"'JetBrains Mono',monospace"}}>Avg Cost / Call</div>
+          </div>
+          <div style={{height:120,display:"flex",alignItems:"flex-end",gap:8,padding:"0 8px 6px"}}>
+            {costBars.map((b)=>(
+              <div key={b.city} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:6,flex:1}}>
+                <div style={{width:"100%",height:Math.max(8,Math.round((b.cost/maxCostBar)*96)),background:b.color,borderRadius:4}}/>
+                <div style={{fontSize:8,color:T.muted,fontFamily:"'JetBrains Mono',monospace",whiteSpace:"nowrap"}}>{b.city}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div style={{...panel,padding:"10px 12px"}}>
+          <div style={{fontSize:13,fontWeight:700,marginBottom:8}}>Call Activity Timeline</div>
+          <svg width="100%" height="120" viewBox="0 0 290 110" preserveAspectRatio="none">
+            {[18,34,50,66,82].map(y => <line key={y} x1="12" y1={y} x2="280" y2={y} stroke={T.border} strokeWidth="1"/>)}
+            <polyline points={timelinePoints} fill="none" stroke={T.cyan} strokeWidth="2.2"/>
+            {timelinePoints.split(" ").map((pt, i) => {
+              const [x,y] = pt.split(",");
+              return <circle key={i} cx={x} cy={y} r="2.1" fill={T.cyan}/>;
+            })}
+            {timelineX.map((h,i)=><text key={h} x={16 + i*24} y="102" fill={T.muted} fontSize="8" textAnchor="middle">{h}</text>)}
+          </svg>
+        </div>
+      </div>
+
+      <div style={{display:"grid",gridTemplateColumns:"2fr 1fr",gap:10,marginBottom:10}}>
+        <div style={{display:"grid",gap:8}}>
+          {[
+            {label:"Longest Call", value:fmtSecs(longestCall), sub:"Highest call duration", icon:"✆", color:T.cyan},
+            {label:"Shortest Call", value:fmtSecs(shortestCall), sub:"Minimum connected call", icon:"⎋", color:T.green},
+            {label:"Daily Activity", value:peakCount, sub:`Calls on ${peakDay}`, icon:"▣", color:T.amber},
+          ].map((x)=>(
+            <div key={x.label} style={{...panel,padding:"10px 12px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+              <div>
+                <div style={{fontSize:9,color:T.muted,marginBottom:6}}>{x.label}</div>
+                <div style={{fontSize:24,fontWeight:800,lineHeight:1,marginBottom:6}}>{x.value}</div>
+                <div style={{fontSize:9,color:T.muted,fontFamily:"'JetBrains Mono',monospace"}}>{x.sub}</div>
+              </div>
+              <div style={{width:20,height:20,borderRadius:6,background:"rgba(44,198,255,.14)",color:x.color,fontSize:12,display:"grid",placeItems:"center"}}>{x.icon}</div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{...panel,padding:"10px 12px"}}>
+          <div style={{fontSize:13,fontWeight:700,marginBottom:8}}>Calls by City</div>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"center",marginBottom:8}}>
+            <svg width="120" height="120" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="32" fill="none" stroke={T.surf3} strokeWidth="11"/>
+              {citySlices.map((s) => {
+                const seg = (s.count / cityTotal) * donutCirc;
+                const node = (
+                  <circle
+                    key={s.city}
+                    cx="50"
+                    cy="50"
+                    r="32"
+                    fill="none"
+                    stroke={s.color}
+                    strokeWidth="11"
+                    strokeDasharray={`${seg} ${donutCirc - seg}`}
+                    strokeDashoffset={dashOffsetAcc}
+                    transform="rotate(-90 50 50)"
+                  />
+                );
+                dashOffsetAcc -= seg;
+                return node;
+              })}
             </svg>
-            {[ ["Outgoing","52%",T.cyan],["Incoming","36%",T.violet],["Missed","12%",T.red] ].map(([l,v,c])=>(
-              <div key={l} style={{display:"flex",alignItems:"center",gap:8,width:"100%",fontSize:12}}>
-                <div style={{width:8,height:8,borderRadius:"50%",background:c,flexShrink:0}}/>
-                <div style={{color:T.muted,flex:1}}>{l}</div>
-                <div style={{fontFamily:"'JetBrains Mono',monospace",fontWeight:500,color:c}}>{v}</div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6}}>
+            {citySlices.map((s)=>(
+              <div key={s.city} style={{display:"flex",alignItems:"center",gap:6,fontSize:9,color:T.muted}}>
+                <span style={{width:7,height:7,borderRadius:"50%",background:s.color,display:"inline-block"}}/>
+                <span style={{flex:1,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{s.city}</span>
+                <span style={{color:T.text,fontFamily:"'JetBrains Mono',monospace"}}>{Math.round((s.count/cityTotal)*100)}%</span>
               </div>
             ))}
           </div>
-        </Card>
+        </div>
       </div>
 
-      {/* Preview table */}
-      <Card
-        title="RECENT CALL RECORDS"
-        rawBadge
-        badge={
-          <div style={{display:"flex",alignItems:"center",gap:8}}>
-            <button
-              onClick={() => setPreviewPage((p) => Math.max(1, p - 1))}
-              disabled={previewPage === 1}
-              style={dashPgBtnStyle(previewPage === 1)}
-            >
-              ←
-            </button>
-            <span style={{fontSize:10,fontFamily:"'JetBrains Mono',monospace",color:T.cyan,minWidth:62,textAlign:"center"}}>
-              Page {previewPage}/{previewTotalPages}
-            </span>
-            <button
-              onClick={() => setPreviewPage((p) => Math.min(previewTotalPages, p + 1))}
-              disabled={previewPage === previewTotalPages}
-              style={dashPgBtnStyle(previewPage === previewTotalPages)}
-            >
-              →
-            </button>
+      <div style={{...panel,padding:"10px 12px"}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
+          <div>
+            <div style={{fontSize:13,fontWeight:700}}>Recent Call Logs</div>
+            <div style={{fontSize:9,color:T.muted,fontFamily:"'JetBrains Mono',monospace"}}>Showing {rangeStart}-{rangeEnd} of {totalCalls}</div>
           </div>
-        }
-      >
-        <TableGrid rows={preview} showIndex={false}/>
-      </Card>
+          <div style={cdrPgBarStyle}>
+            <span style={cdrPgLabelStyle}>Rows</span>
+            <select value={rowsPerPage} onChange={(e)=>setRowsPerPage(Number(e.target.value))} style={cdrRowsSelectStyle}>
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+            </select>
+            <button onClick={()=>setLogsPage(p=>Math.max(1,p-1))} disabled={logsPage===1} style={cdrPgActionStyle(logsPage===1,"default")}>Previous</button>
+            <span style={cdrPgPageStyle}>Page {logsPage} / {totalPages}</span>
+            <button onClick={()=>setLogsPage(p=>Math.min(totalPages,p+1))} disabled={logsPage===totalPages} style={cdrPgActionStyle(logsPage===totalPages,"next")}>Next</button>
+          </div>
+        </div>
+
+        <div style={{border:`1px solid ${T.border}`,borderRadius:10,overflow:"hidden"}}>
+          <table style={{width:"100%",borderCollapse:"collapse"}}>
+            <thead>
+              <tr style={{background:T.surf3}}>
+                {["Caller Name","Caller Number","Receiver Number","City","Duration","Cost","Start Time"].map((h)=>(
+                  <th key={h} style={{padding:"10px 12px",textAlign:"left",fontSize:9,fontWeight:700,letterSpacing:".08em",textTransform:"uppercase",color:T.muted,borderBottom:`1px solid ${T.border}`}}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r, i)=>(
+                <tr key={`${r.id}-${i}`} onMouseEnter={e=>e.currentTarget.querySelectorAll("td").forEach(td=>td.style.background="rgba(44,198,255,.04)")} onMouseLeave={e=>e.currentTarget.querySelectorAll("td").forEach(td=>td.style.background="transparent")}>
+                  <td style={tdStyle}>{r._callerName}</td>
+                  <td style={tdStyle}>{r.caller}</td>
+                  <td style={tdStyle}>{r.receiver}</td>
+                  <td style={tdStyle}>{r.city}</td>
+                  <td style={tdStyle}>{fmtSecs(r.duration || 0)}</td>
+                  <td style={tdStyle}>{fmtMoney(r._cost || 0)}</td>
+                  <td style={tdStyle}>{String(r.datetime || "").replace("T"," ").replace("Z","")}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 };
@@ -805,7 +1154,7 @@ const TableGrid = ({rows,showIndex=true,startIdx=0}) => (
       <tbody>
         {rows.map((r,i)=>(
           <tr key={r.id}
-            onMouseEnter={e=>e.currentTarget.querySelectorAll("td").forEach(td=>td.style.background="rgba(0,220,255,.03)")}
+            onMouseEnter={e=>e.currentTarget.querySelectorAll("td").forEach(td=>td.style.background="rgba(44,198,255,.03)")}
             onMouseLeave={e=>e.currentTarget.querySelectorAll("td").forEach(td=>td.style.background="transparent")}
           >
             {showIndex&&<td style={tdStyle}><span style={{color:T.muted,fontSize:11}}>{startIdx+i+1}</span></td>}
@@ -822,7 +1171,7 @@ const TableGrid = ({rows,showIndex=true,startIdx=0}) => (
   </div>
 );
 const thStyle={padding:"12px 16px",textAlign:"left",fontSize:10,fontWeight:700,letterSpacing:".1em",textTransform:"uppercase",color:T.muted,borderBottom:`1px solid ${T.border}`};
-const tdStyle={padding:"12px 16px",fontSize:12,fontFamily:"'JetBrains Mono',monospace",borderBottom:`1px solid rgba(0,220,255,.04)`,transition:"background .15s"};
+const tdStyle={padding:"12px 16px",fontSize:12,fontFamily:"'JetBrains Mono',monospace",borderBottom:`1px solid rgba(44,198,255,.04)`,transition:"background .15s"};
 const dashPgBtnStyle = disabled => ({
   width:28,
   height:28,
@@ -842,7 +1191,7 @@ const dashPgBtnStyle = disabled => ({
 const CDRPage = ({showToast,cdrData}) => {
   const [filters,setFilters] = useState({type:"",city:""});
   const [page,setPage] = useState(1);
-  const PER = 8;
+  const [rowsPerPage,setRowsPerPage] = useState(10);
 
   const filtered = useMemo(()=>cdrData.filter(r=>{
     const tm=!filters.type||r.type===filters.type;
@@ -850,8 +1199,11 @@ const CDRPage = ({showToast,cdrData}) => {
     return tm&&cm;
   }),[cdrData, filters]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length/PER));
-  const rows = filtered.slice((page-1)*PER, page*PER);
+  const totalPages = Math.max(1, Math.ceil(filtered.length/rowsPerPage));
+  const rows = filtered.slice((page-1)*rowsPerPage, page*rowsPerPage);
+  useEffect(() => {
+    setPage(p => Math.min(p, totalPages));
+  }, [totalPages]);
 
   const apply = () => { setPage(1); showToast(`Filter applied · ${filtered.length} records found`); };
 
@@ -888,24 +1240,88 @@ const CDRPage = ({showToast,cdrData}) => {
         <BtnPrimary onClick={apply} style={{padding:"9px 20px",alignSelf:"flex-end"}}>Apply Filter</BtnPrimary>
       </div>
 
-      <TableGrid rows={rows} showIndex startIdx={(page-1)*PER}/>
+      <TableGrid rows={rows} showIndex startIdx={(page-1)*rowsPerPage}/>
 
       {/* Pagination */}
-      <div style={{display:"flex",alignItems:"center",gap:8,marginTop:16,justifyContent:"flex-end"}}>
-        <button onClick={()=>setPage(p=>Math.max(1,p-1))} style={pgBtnStyle(false)}>←</button>
-        {Array.from({length:totalPages},(_,i)=>i+1).map(n=>(
-          <button key={n} onClick={()=>setPage(n)} style={pgBtnStyle(n===page)}>{n}</button>
-        ))}
-        <button onClick={()=>setPage(p=>Math.min(totalPages,p+1))} style={pgBtnStyle(false)}>→</button>
+      <div style={{display:"flex",marginTop:16,justifyContent:"flex-end"}}>
+        <div style={cdrPgBarStyle}>
+          <span style={cdrPgLabelStyle}>Rows</span>
+          <select
+            value={rowsPerPage}
+            onChange={e => { setRowsPerPage(Number(e.target.value)); setPage(1); }}
+            style={cdrRowsSelectStyle}
+          >
+            <option value={10}>10</option>
+            <option value={25}>25</option>
+            <option value={50}>50</option>
+          </select>
+
+          <button
+            onClick={()=>setPage(p=>Math.max(1,p-1))}
+            disabled={page === 1}
+            style={cdrPgActionStyle(page === 1, "default")}
+          >
+            Previous
+          </button>
+
+          <span style={cdrPgPageStyle}>Page {page} / {totalPages}</span>
+
+          <button
+            onClick={()=>setPage(p=>Math.min(totalPages,p+1))}
+            disabled={page === totalPages}
+            style={cdrPgActionStyle(page === totalPages, "next")}
+          >
+            Next
+          </button>
+        </div>
       </div>
     </div>
   );
 };
 const labelStyle={display:"block",fontSize:10,fontWeight:700,letterSpacing:".1em",color:T.muted,textTransform:"uppercase",marginBottom:6};
-const pgBtnStyle = active => ({
-  width:32,height:32,borderRadius:8,border:`1px solid ${active?T.cyan:T.border}`,
-  background:active?"rgba(0,220,255,.08)":T.surf,color:active?T.cyan:T.muted,
-  fontFamily:"'JetBrains Mono',monospace",fontSize:12,display:"grid",placeItems:"center",cursor:"pointer",
+const cdrPgBarStyle = {
+  display:"flex",
+  alignItems:"center",
+  gap:8,
+  padding:"7px 10px",
+  borderRadius:8,
+  background:"rgba(5,12,28,.95)",
+  border:`1px solid ${T.border}`,
+};
+const cdrPgLabelStyle = {
+  fontSize:10,
+  color:T.muted,
+  fontFamily:"'JetBrains Mono',monospace",
+};
+const cdrPgPageStyle = {
+  fontSize:10,
+  color:T.cyan,
+  fontFamily:"'JetBrains Mono',monospace",
+  padding:"0 4px",
+};
+const cdrRowsSelectStyle = {
+  width:58,
+  height:22,
+  padding:"0 6px",
+  borderRadius:6,
+  border:`1px solid ${T.border2}`,
+  background:T.bg,
+  color:T.cyan,
+  fontSize:10,
+  fontWeight:700,
+  fontFamily:"'JetBrains Mono',monospace",
+};
+const cdrPgActionStyle = (disabled, variant) => ({
+  height:22,
+  padding:"0 10px",
+  borderRadius:6,
+  border:`1px solid ${disabled ? T.border : (variant === "next" ? T.cyan : T.border2)}`,
+  background:disabled ? T.surf3 : (variant === "next" ? "rgba(44,198,255,.14)" : T.surf),
+  color:disabled ? T.muted2 : T.cyan,
+  fontSize:10,
+  fontWeight:600,
+  fontFamily:"'JetBrains Mono',monospace",
+  cursor:disabled ? "not-allowed" : "pointer",
   transition:"all .2s",
 });
 
@@ -970,60 +1386,301 @@ const CallersPage = ({cdrData}) => {
 };
 
 /* ─── USERS PAGE ─────────────────────────────────────── */
-const UsersPage = ({showToast}) => (
+const UsersPage = ({showToast,currentUserId}) => {
+  const [users, setUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+  const [usersError, setUsersError] = useState("");
+  const [creatingUser, setCreatingUser] = useState(false);
+  const [deletingUserId, setDeletingUserId] = useState("");
+  const [newUser, setNewUser] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "analyst",
+  });
+  const formatUsersError = (err) => {
+    const message = getApiErrorMessage(err);
+    if (message.includes("status code 404")) {
+      return "Users API endpoint not found. Restart backend to load latest auth routes.";
+    }
+    return message;
+  };
+
+  const loadUsers = async () => {
+    setLoadingUsers(true);
+    setUsersError("");
+    try {
+      const records = await getUsersRequest();
+      setUsers(records);
+    } catch (err) {
+      setUsers([]);
+      setUsersError(formatUsersError(err));
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const onNewUserChange = (field, value) => {
+    setNewUser((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleAddUser = async () => {
+    if (creatingUser) return;
+
+    const name = newUser.name.trim();
+    const email = newUser.email.trim().toLowerCase();
+    const password = newUser.password;
+    const role = newUser.role === "admin" ? "admin" : "analyst";
+
+    if (!name) {
+      setUsersError("Name is required");
+      return;
+    }
+    if (!email) {
+      setUsersError("Email is required");
+      return;
+    }
+    if (!password) {
+      setUsersError("Password is required");
+      return;
+    }
+    if (password.length < 8) {
+      setUsersError("Password must be at least 8 characters");
+      return;
+    }
+
+    setCreatingUser(true);
+    setUsersError("");
+    try {
+      await createUserRequest({ name, email, password, role });
+      setNewUser({ name: "", email: "", password: "", role: "analyst" });
+      await loadUsers();
+      showToast("User added successfully");
+    } catch (err) {
+      const message = formatUsersError(err);
+      setUsersError(message);
+      showToast(`Add user failed · ${message}`);
+    } finally {
+      setCreatingUser(false);
+    }
+  };
+
+  const handleRemoveUser = async (user) => {
+    if (!user?.id || deletingUserId) return;
+    if (String(user.id) === String(currentUserId)) {
+      showToast("You cannot remove your own account");
+      return;
+    }
+
+    const confirmed = window.confirm(`Remove user "${user.name || user.email}"?`);
+    if (!confirmed) return;
+
+    setDeletingUserId(String(user.id));
+    setUsersError("");
+    try {
+      await removeUserRequest(String(user.id));
+      setUsers((prev) => prev.filter((x) => String(x.id) !== String(user.id)));
+      showToast("User removed successfully");
+    } catch (err) {
+      const message = formatUsersError(err);
+      setUsersError(message);
+      showToast(`Remove user failed · ${message}`);
+    } finally {
+      setDeletingUserId("");
+    }
+  };
+
+  return (
+    <div style={{animation:"fadeUp .4s ease both"}}>
+      <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:28}}>
+        <div>
+          <div style={{fontSize:24,fontWeight:800}}>User Management</div>
+          <div style={{color:T.muted,fontFamily:"'JetBrains Mono',monospace",fontSize:11,marginTop:4}}>// Live users from database</div>
+        </div>
+        <BtnSm onClick={()=>{ loadUsers(); showToast("Refreshing users from DB"); }}>Refresh</BtnSm>
+      </div>
+
+      <div style={{background:T.surf,border:`1px solid ${T.border}`,borderRadius:14,padding:16,marginBottom:16}}>
+        <div style={{fontSize:12,fontWeight:700,letterSpacing:".06em",marginBottom:10,color:T.muted,textTransform:"uppercase"}}>Add User</div>
+        <div style={{display:"grid",gridTemplateColumns:"1.2fr 1.4fr 1fr 0.85fr auto",gap:8,alignItems:"end"}}>
+          <div>
+            <div style={{fontSize:10,color:T.muted,marginBottom:4}}>Name</div>
+            <input
+              value={newUser.name}
+              onChange={(e)=>onNewUserChange("name", e.target.value)}
+              placeholder="Full name"
+              disabled={creatingUser}
+            />
+          </div>
+          <div>
+            <div style={{fontSize:10,color:T.muted,marginBottom:4}}>Email</div>
+            <input
+              type="email"
+              value={newUser.email}
+              onChange={(e)=>onNewUserChange("email", e.target.value)}
+              placeholder="user@company.com"
+              disabled={creatingUser}
+            />
+          </div>
+          <div>
+            <div style={{fontSize:10,color:T.muted,marginBottom:4}}>Password</div>
+            <input
+              type="password"
+              value={newUser.password}
+              onChange={(e)=>onNewUserChange("password", e.target.value)}
+              placeholder="Min 8 chars"
+              disabled={creatingUser}
+            />
+          </div>
+          <div>
+            <div style={{fontSize:10,color:T.muted,marginBottom:4}}>Role</div>
+            <select
+              value={newUser.role}
+              onChange={(e)=>onNewUserChange("role", e.target.value)}
+              disabled={creatingUser}
+            >
+              <option value="analyst">analyst</option>
+              <option value="admin">admin</option>
+            </select>
+          </div>
+          <button
+            onClick={handleAddUser}
+            disabled={creatingUser}
+            style={{
+              height:36,
+              padding:"0 14px",
+              borderRadius:8,
+              border:`1px solid ${T.border2}`,
+              background:creatingUser ? T.surf3 : "rgba(44,198,255,.1)",
+              color:creatingUser ? T.muted2 : T.cyan,
+              fontFamily:"'Space Grotesk',sans-serif",
+              fontSize:12,
+              fontWeight:700,
+              cursor:creatingUser ? "not-allowed" : "pointer",
+            }}
+          >
+            {creatingUser ? "Adding..." : "Add User"}
+          </button>
+        </div>
+      </div>
+
+      {loadingUsers && (
+        <div style={{background:T.surf,border:`1px solid ${T.border}`,borderRadius:14,padding:20,color:T.muted,fontFamily:"'JetBrains Mono',monospace",fontSize:12}}>
+          Loading users...
+        </div>
+      )}
+
+      {!loadingUsers && usersError && (
+        <div style={{background:"rgba(255,107,157,.08)",border:"1px solid rgba(255,107,157,.25)",borderRadius:12,padding:16,color:T.red,fontFamily:"'JetBrains Mono',monospace",fontSize:12}}>
+          Failed to load users: {usersError}
+        </div>
+      )}
+
+      {!loadingUsers && !usersError && users.length === 0 && (
+        <div style={{background:T.surf,border:`1px solid ${T.border}`,borderRadius:14,padding:20,color:T.muted,fontFamily:"'JetBrains Mono',monospace",fontSize:12}}>
+          No users found in database.
+        </div>
+      )}
+
+      {!loadingUsers && !usersError && users.length > 0 && (
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:16}}>
+          {users.map((u, i) => {
+            const created = new Date(u.created_at);
+            const createdLabel = Number.isNaN(created.getTime())
+              ? (u.created_at || "-")
+              : created.toLocaleString();
+
+            return (
+              <div key={u.id || u.email || i} style={{
+                background:T.surf,border:`1px solid ${T.border}`,borderRadius:14,padding:22,
+                transition:"all .2s",
+              }}
+              onMouseEnter={e=>{e.currentTarget.style.borderColor=T.border2;e.currentTarget.style.transform="translateY(-2px)"}}
+              onMouseLeave={e=>{e.currentTarget.style.borderColor=T.border;e.currentTarget.style.transform="translateY(0)"}}
+              >
+                <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
+                  <div style={{width:44,height:44,borderRadius:"50%",background:USER_GRADIENTS[i % USER_GRADIENTS.length],display:"grid",placeItems:"center",fontSize:14,fontWeight:800,color:"#05080f",flexShrink:0}}>
+                    {String(u.name || "U").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase()}
+                  </div>
+                  <div>
+                    <div style={{fontSize:14,fontWeight:700}}>{u.name || "-"}</div>
+                    <div style={{fontSize:11,color:T.muted,fontFamily:"'JetBrains Mono',monospace"}}>{u.email || "-"}</div>
+                  </div>
+                </div>
+
+                <span style={{
+                  display:"inline-flex",alignItems:"center",gap:5,
+                  padding:"4px 10px",borderRadius:8,fontSize:10,fontWeight:700,letterSpacing:".06em",textTransform:"uppercase",
+                  background:u.role==="admin"?"rgba(139,92,246,.12)":"rgba(44,198,255,.10)",
+                  color:u.role==="admin"?T.violet:T.cyan,
+                }}>● {u.role || "analyst"}</span>
+
+                <div style={{display:"grid",gridTemplateColumns:"1fr",gap:8,marginTop:14}}>
+                  <div style={{background:T.surf2,borderRadius:8,padding:"8px 10px"}}>
+                    <div style={{fontSize:11,color:T.muted,letterSpacing:".05em",marginBottom:4}}>Created At</div>
+                    <div style={{fontSize:12,fontFamily:"'JetBrains Mono',monospace"}}>{createdLabel}</div>
+                  </div>
+                </div>
+
+                <div style={{marginTop:12,display:"flex",justifyContent:"flex-end"}}>
+                  <button
+                    onClick={() => handleRemoveUser(u)}
+                    disabled={String(u.id) === String(currentUserId) || deletingUserId === String(u.id)}
+                    style={{
+                      height:30,
+                      padding:"0 10px",
+                      borderRadius:8,
+                      border:`1px solid ${String(u.id) === String(currentUserId) ? T.border : "rgba(255,107,157,.42)"}`,
+                      background:String(u.id) === String(currentUserId) ? T.surf3 : "rgba(255,107,157,.12)",
+                      color:String(u.id) === String(currentUserId) ? T.muted2 : T.red,
+                      fontFamily:"'Space Grotesk',sans-serif",
+                      fontSize:11,
+                      fontWeight:700,
+                      cursor:(String(u.id) === String(currentUserId) || deletingUserId === String(u.id)) ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    {String(u.id) === String(currentUserId) ? "Current User" : (deletingUserId === String(u.id) ? "Removing..." : "Remove")}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ─── SETTINGS PAGE ─────────────────────────────────── */
+const SettingsPage = ({theme,onToggleTheme}) => (
   <div style={{animation:"fadeUp .4s ease both"}}>
     <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:28}}>
       <div>
-        <div style={{fontSize:24,fontWeight:800}}>User Management</div>
-        <div style={{color:T.muted,fontFamily:"'JetBrains Mono',monospace",fontSize:11,marginTop:4}}>// Role-based access control · JWT auth</div>
+        <div style={{fontSize:24,fontWeight:800}}>Settings</div>
+        <div style={{color:T.muted,fontFamily:"'JetBrains Mono',monospace",fontSize:11,marginTop:4}}>// Application preferences</div>
       </div>
-      <BtnSm onClick={()=>showToast("API: POST /auth/register — Add user flow")}>+ Add User</BtnSm>
     </div>
-    <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:16}}>
-      {USERS.map(u=>(
-        <div key={u.email} style={{
-          background:T.surf,border:`1px solid ${T.border}`,borderRadius:14,padding:22,
-          transition:"all .2s",
-        }}
-        onMouseEnter={e=>{e.currentTarget.style.borderColor=T.border2;e.currentTarget.style.transform="translateY(-2px)"}}
-        onMouseLeave={e=>{e.currentTarget.style.borderColor=T.border;e.currentTarget.style.transform="translateY(0)"}}
-        >
-          <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
-            <div style={{width:44,height:44,borderRadius:"50%",background:u.grad,display:"grid",placeItems:"center",fontSize:14,fontWeight:800,color:"#05080f",flexShrink:0}}>
-              {u.name.split(" ").map(w=>w[0]).join("")}
-            </div>
-            <div>
-              <div style={{fontSize:14,fontWeight:700}}>{u.name}</div>
-              <div style={{fontSize:11,color:T.muted,fontFamily:"'JetBrains Mono',monospace"}}>{u.email}</div>
-            </div>
-          </div>
-          <span style={{
-            display:"inline-flex",alignItems:"center",gap:5,
-            padding:"4px 10px",borderRadius:8,fontSize:10,fontWeight:700,letterSpacing:".06em",textTransform:"uppercase",
-            background:u.role==="admin"?"rgba(139,92,246,.12)":"rgba(0,220,255,.10)",
-            color:u.role==="admin"?T.violet:T.cyan,
-          }}>● {u.role}</span>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginTop:14}}>
-            {[[u.calls.toLocaleString(),"API Calls"],[u.reports,"Reports"]].map(([v,l])=>(
-              <div key={l} style={{background:T.surf2,borderRadius:8,padding:"8px 10px"}}>
-                <div style={{fontSize:16,fontWeight:800,marginBottom:2}}>{v}</div>
-                <div style={{fontSize:10,color:T.muted,letterSpacing:".05em"}}>{l}</div>
-              </div>
-            ))}
-          </div>
-          <div style={{display:"flex",gap:8,marginTop:14}}>
-            {["Edit","Revoke"].map(action=>(
-              <button key={action} onClick={()=>showToast(`${action}: ${u.name}`)} style={{
-                flex:1,padding:7,borderRadius:8,border:`1px solid ${T.border}`,background:"transparent",
-                color:T.muted,fontFamily:"'Space Grotesk',sans-serif",fontSize:11,fontWeight:600,cursor:"pointer",transition:"all .2s",
-              }}
-              onMouseEnter={e=>{e.currentTarget.style.borderColor=action==="Revoke"?T.red:T.cyan;e.currentTarget.style.color=action==="Revoke"?T.red:T.cyan}}
-              onMouseLeave={e=>{e.currentTarget.style.borderColor=T.border;e.currentTarget.style.color=T.muted}}
-              >{action}</button>
-            ))}
-          </div>
+
+    <div style={{display:"grid",gridTemplateColumns:"repeat(2, minmax(280px, 1fr))",gap:16}}>
+      <div style={{background:T.surf,border:`1px solid ${T.border}`,borderRadius:14,padding:20}}>
+        <div style={{fontSize:14,fontWeight:700,marginBottom:6}}>Theme Mode</div>
+        <div style={{fontSize:11,color:T.muted,fontFamily:"'JetBrains Mono',monospace",marginBottom:14}}>
+          Current: {theme === "dark" ? "Dark" : "Light"}
         </div>
-      ))}
+        <BtnSm onClick={onToggleTheme}>{theme === "dark" ? "Switch to Light Mode" : "Switch to Dark Mode"}</BtnSm>
+      </div>
+
+      <div style={{background:T.surf,border:`1px solid ${T.border}`,borderRadius:14,padding:20}}>
+        <div style={{fontSize:14,fontWeight:700,marginBottom:6}}>Dataset Source</div>
+        <div style={{fontSize:11,color:T.muted,fontFamily:"'JetBrains Mono',monospace",marginBottom:14}}>
+          Google Sheet with local `mock_cdr.csv` fallback.
+        </div>
+        <BtnSm onClick={()=>window.open(GOOGLE_SHEET_URL,"_blank","noopener,noreferrer")}>Open Google Sheet</BtnSm>
+      </div>
     </div>
   </div>
 );
@@ -1038,7 +1695,7 @@ const APIPage = () => {
           <div style={{fontSize:24,fontWeight:800}}>API Reference</div>
           <div style={{color:T.muted,fontFamily:"'JetBrains Mono',monospace",fontSize:11,marginTop:4}}>// REST endpoints · JWT secured · Base: /api/v1</div>
         </div>
-        <div style={{display:"flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:20,background:"rgba(0,255,176,.08)",border:"1px solid rgba(0,255,176,.2)",fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:T.green}}>
+        <div style={{display:"flex",alignItems:"center",gap:6,padding:"5px 12px",borderRadius:20,background:"rgba(38,214,161,.08)",border:"1px solid rgba(38,214,161,.2)",fontFamily:"'JetBrains Mono',monospace",fontSize:11,color:T.green}}>
           <div style={{width:6,height:6,borderRadius:"50%",background:T.green,animation:"pulse 2s infinite"}}/> All endpoints live
         </div>
       </div>
@@ -1048,14 +1705,14 @@ const APIPage = () => {
             <div onClick={()=>setOpen(open===i?null:i)} style={{display:"flex",alignItems:"center",gap:12,padding:"14px 18px",cursor:"pointer"}}>
               <span style={{
                 padding:"4px 10px",borderRadius:6,fontFamily:"'JetBrains Mono',monospace",fontSize:11,fontWeight:500,minWidth:48,textAlign:"center",
-                background:ep.method==="GET"?"rgba(0,255,176,.12)":"rgba(251,191,36,.12)",
+                background:ep.method==="GET"?"rgba(38,214,161,.12)":"rgba(251,191,36,.12)",
                 color:ep.method==="GET"?T.green:T.amber,
               }}>{ep.method}</span>
               <span style={{fontFamily:"'JetBrains Mono',monospace",fontSize:13,flex:1}}>/api/v1{ep.path}</span>
               <span style={{fontSize:12,color:T.muted}}>{ep.desc}</span>
               <span style={{
                 fontSize:10,fontFamily:"'JetBrains Mono',monospace",padding:"2px 8px",borderRadius:5,
-                background:ep.auth?"rgba(139,92,246,.1)":"rgba(0,255,176,.08)",
+                background:ep.auth?"rgba(139,92,246,.1)":"rgba(38,214,161,.08)",
                 color:ep.auth?T.violet:T.green,marginLeft:8,
               }}>{ep.auth?"🔒 JWT":"Public"}</span>
               <span style={{color:T.muted,marginLeft:8,transition:"transform .2s",transform:open===i?"rotate(180deg)":"rotate(0)"}}>▾</span>
@@ -1080,9 +1737,12 @@ const APIPage = () => {
 export default function App() {
   const [authed,setAuthed] = useState(false);
   const [role,setRole] = useState("admin");
+  const [userName,setUserName] = useState("");
+  const [userId,setUserId] = useState("");
   const [page,setPage] = useState("dashboard");
   const [toast,setToast] = useState({msg:"",visible:false});
   const [cdrData,setCdrData] = useState([]);
+  const [theme,setTheme] = useState(() => localStorage.getItem("tip-theme") || "dark");
 
   // Inject global styles
   useEffect(()=>{
@@ -1110,47 +1770,83 @@ export default function App() {
     return () => { dead = true; };
   }, []);
 
+  useEffect(() => {
+    const root = document.documentElement;
+    const vars = THEME_VARS[theme] || THEME_VARS.dark;
+    Object.entries(vars).forEach(([k, v]) => root.style.setProperty(k, v));
+    root.style.colorScheme = theme;
+    localStorage.setItem("tip-theme", theme);
+  }, [theme]);
+
+  const allowedPages = role === "admin"
+    ? ["dashboard","users","settings","api"]
+    : ["dashboard","settings"];
+
+  useEffect(() => {
+    if (!allowedPages.includes(page)) {
+      setPage("dashboard");
+    }
+  }, [page, role]);
+
   const showToast = msg => {
     setToast({msg,visible:true});
     setTimeout(()=>setToast(t=>({...t,visible:false})),3000);
   };
 
-  const handleLogin = r => {
-    setRole(r);
+  const handleLogin = user => {
+    const nextRole = user?.role === "admin" ? "admin" : "analyst";
+    setRole(nextRole);
+    setUserName(user?.name || "");
+    setUserId(user?.id || "");
     setPage("dashboard");
     setAuthed(true);
-    showToast(`Authenticated via JWT · Welcome, ${r==="admin"?"Admin":"Analyst"}!`);
+    showToast(`Authenticated via bcrypt · Welcome, ${user?.name || (nextRole==="admin"?"Admin":"Analyst")}!`);
   };
+  const handleLogout = async () => {
+    try {
+      await logoutRequest();
+    } catch {
+      // Keep logout UX responsive even if API is unavailable.
+    }
+    setAuthed(false);
+    setPage("dashboard");
+    setRole("analyst");
+    setUserName("");
+    setUserId("");
+    showToast("Logged out successfully");
+  };
+  const toggleTheme = () => setTheme(t => t === "dark" ? "light" : "dark");
 
   if(!authed) return (
     <>
       <style>{GLOBAL_CSS}</style>
-      <LoginPage onLogin={handleLogin}/>
+      <LoginPage onLogin={handleLogin} theme={theme} onToggleTheme={toggleTheme}/>
       <Toast {...toast}/>
     </>
   );
 
   const pages = {
     dashboard:<Dashboard setPage={setPage} showToast={showToast} cdrData={cdrData}/>,
-    cdr:<CDRPage showToast={showToast} cdrData={cdrData}/>,
-    callers:<CallersPage cdrData={cdrData}/>,
-    users:<UsersPage showToast={showToast}/>,
-    api:<APIPage/>,
+    settings:<SettingsPage theme={theme} onToggleTheme={toggleTheme}/>,
+    ...(role === "admin" ? {
+      users:<UsersPage showToast={showToast} currentUserId={userId}/>,
+      api:<APIPage/>,
+    } : {}),
   };
 
   return (
     <>
       {/* bg grid */}
-      <div style={{position:"fixed",inset:0,backgroundImage:`linear-gradient(rgba(0,220,255,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(0,220,255,.022) 1px,transparent 1px)`,backgroundSize:"48px 48px",pointerEvents:"none",zIndex:0}}/>
-      <div style={{position:"fixed",width:700,height:700,borderRadius:"50%",filter:"blur(140px)",background:"rgba(0,180,255,.04)",top:-200,left:-200,animation:"blobdrift 14s ease-in-out infinite alternate",pointerEvents:"none",zIndex:0}}/>
+      <div style={{position:"fixed",inset:0,backgroundImage:`linear-gradient(rgba(44,198,255,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(44,198,255,.022) 1px,transparent 1px)`,backgroundSize:"48px 48px",pointerEvents:"none",zIndex:0}}/>
+      <div style={{position:"fixed",width:700,height:700,borderRadius:"50%",filter:"blur(140px)",background:"rgba(44,198,255,.04)",top:-200,left:-200,animation:"blobdrift 14s ease-in-out infinite alternate",pointerEvents:"none",zIndex:0}}/>
       <div style={{position:"fixed",width:600,height:600,borderRadius:"50%",filter:"blur(140px)",background:"rgba(139,92,246,.05)",bottom:-150,right:-150,animation:"blobdrift 18s ease-in-out infinite alternate-reverse",pointerEvents:"none",zIndex:0}}/>
 
-      <div style={{display:"flex",flexDirection:"column",minHeight:"100vh",position:"relative",zIndex:1}}>
-        <Topbar page={page} role={role} onLogout={()=>{setAuthed(false);setPage("dashboard")}}/>
-        <div style={{display:"grid",gridTemplateColumns:"220px 1fr",flex:1,minHeight:"calc(100vh - 56px)"}}>
-          <Sidebar page={page} setPage={setPage} role={role}/>
-          <main style={{padding:28,overflowY:"auto",background:"transparent"}}>
-            {pages[page]}
+      <div style={{display:"flex",flexDirection:"column",height:"100vh",overflow:"hidden",position:"relative",zIndex:1}}>
+        <Topbar role={role} userName={userName} theme={theme} onToggleTheme={toggleTheme}/>
+        <div style={{display:"grid",gridTemplateColumns:"220px 1fr",flex:1,height:"calc(100vh - 56px)",overflow:"hidden"}}>
+          <Sidebar page={page} setPage={setPage} role={role} onLogout={handleLogout}/>
+          <main style={{padding:28,overflowY:"auto",minHeight:0,background:"transparent"}}>
+            {pages[page] || pages.dashboard}
           </main>
         </div>
       </div>

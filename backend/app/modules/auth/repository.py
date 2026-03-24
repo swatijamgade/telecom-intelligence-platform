@@ -17,3 +17,12 @@ def create_user(db: Session, user: User) -> User:
     db.commit()
     db.refresh(user)
     return user
+
+
+def list_users(db: Session) -> list[User]:
+    return list(db.scalars(select(User).order_by(User.created_at.desc())))
+
+
+def delete_user(db: Session, user: User) -> None:
+    db.delete(user)
+    db.commit()

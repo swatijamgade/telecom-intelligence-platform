@@ -1,9 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 
-// Real PineVox logo (base64 embedded, no external request needed)
-const LOGO = "data:image/png;base64,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";
-
 // Design tokens
 const C = {
   bg: "#07090f",
@@ -687,10 +684,6 @@ export default function DashboardPage() {
           }}
         />
 
-        <div style={{ padding: "16px 18px 14px", borderBottom: `1px solid ${C.border}`, display: "flex", alignItems: "center" }}>
-          <img src={LOGO} alt="PineVox" style={{ height: 30, maxWidth: 150, objectFit: "contain", objectPosition: "left center" }} />
-        </div>
-
         <nav style={{ padding: "14px 10px", flex: 1, overflowY: "auto" }}>
           <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "1.3px", textTransform: "uppercase", color: C.t3, padding: "0 8px 8px" }}>
             Navigation
@@ -771,19 +764,6 @@ export default function DashboardPage() {
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span
-              style={{
-                fontSize: 10,
-                fontWeight: 700,
-                padding: "4px 10px",
-                borderRadius: 5,
-                background: C.greenBg,
-                color: C.green,
-                border: `1px solid ${C.greenB}`,
-              }}
-            >
-              ● API LIVE
-            </span>
             <span style={{ fontSize: 10, fontWeight: 600, padding: "4px 10px", borderRadius: 5, color: C.t2, border: `1px solid ${C.border2}` }}>Google Sheet</span>
             <div style={{ textAlign: "right", fontSize: 11 }}>
               <div style={{ color: C.t1, fontWeight: 600 }}>admin@example.com</div>
