@@ -27,8 +27,9 @@ Additional requested points are also covered:
 - bcrypt password hash usage evidence:
   - bcrypt-proof.json
 
-Mock CDR dataset reference:
-https://drive.google.com/file/d/1vDzCqWsUSMSPB0OoWHo1M693fl9YWjHG/view?usp=drive_link
+Mock CDR dataset references:
+https://docs.google.com/spreadsheets/d/1kqnCdclcGpnaVWUXO8BH1BFQtbwVJInqHDji-unrwRc/edit?usp=sharing
+https://drive.google.com/file/d/1vDzCqWsUSMSPB0OoWHo1M693fl9YWjHG/view?usp=sharing
 
 Detailed checklist:
 submission/FINAL_SUBMISSION.md

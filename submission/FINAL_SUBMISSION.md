@@ -1,7 +1,8 @@
 # Final Submission - Telecom Intelligence Platform
 
 ## Mock CDR Data
-- https://drive.google.com/file/d/1vDzCqWsUSMSPB0OoWHo1M693fl9YWjHG/view?usp=drive_link
+- https://docs.google.com/spreadsheets/d/1kqnCdclcGpnaVWUXO8BH1BFQtbwVJInqHDji-unrwRc/edit?usp=sharing
+- https://drive.google.com/file/d/1vDzCqWsUSMSPB0OoWHo1M693fl9YWjHG/view?usp=sharing
 
 ## 1. Backend Code Repository
 - Repository: https://github.com/swatijamgade/telecom-intelligence-platform

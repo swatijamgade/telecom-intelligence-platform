@@ -79,6 +79,8 @@ interface StatItem {
   spark: number[];
 }
 
+const GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1kqnCdclcGpnaVWUXO8BH1BFQtbwVJInqHDji-unrwRc/edit?usp=sharing";
+
 const CDR_DATA: CdrRow[] = [
   {
     id: "CDR-0001",
@@ -782,7 +784,7 @@ export default function DashboardPage() {
             >
               ● API LIVE
             </span>
-            <span style={{ fontSize: 10, fontWeight: 600, padding: "4px 10px", borderRadius: 5, color: C.t2, border: `1px solid ${C.border2}` }}>Mock CSV</span>
+            <span style={{ fontSize: 10, fontWeight: 600, padding: "4px 10px", borderRadius: 5, color: C.t2, border: `1px solid ${C.border2}` }}>Google Sheet</span>
             <div style={{ textAlign: "right", fontSize: 11 }}>
               <div style={{ color: C.t1, fontWeight: 600 }}>admin@example.com</div>
               <div style={{ fontSize: 10, color: C.t3 }}>Super Admin</div>
@@ -1046,6 +1048,7 @@ export default function DashboardPage() {
                 </div>
               </div>
               <button
+                onClick={() => window.open(GOOGLE_SHEET_URL, "_blank", "noopener,noreferrer")}
                 style={{
                   background: "transparent",
                   color: C.acc2,
@@ -1058,7 +1061,7 @@ export default function DashboardPage() {
                   fontFamily: "inherit",
                 }}
               >
-                Export CSV ↓
+                Open Google Sheet
               </button>
             </div>
 

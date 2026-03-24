@@ -1,8 +1,10 @@
 # Telecom Intelligence Platform - Submission Checklist
 
 ## Mock CDR Data
+- Google Sheet dataset:
+  - https://docs.google.com/spreadsheets/d/1kqnCdclcGpnaVWUXO8BH1BFQtbwVJInqHDji-unrwRc/edit?usp=sharing
 - Google Drive dataset:
-  - https://drive.google.com/file/d/1vDzCqWsUSMSPB0OoWHo1M693fl9YWjHG/view?usp=drive_link
+  - https://drive.google.com/file/d/1vDzCqWsUSMSPB0OoWHo1M693fl9YWjHG/view?usp=sharing
 
 ## 1) Backend Code Repository
 - Backend source folder: `backend/`

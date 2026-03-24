@@ -49,13 +49,6 @@ const fakeDate = () => {
 };
 const fmtDur = s => { const m=Math.floor(s/60); return `${pad(m)}:${pad(s%60)}`; };
 
-const CDR_DATA = Array.from({length:120},(_,i)=>(
-{
-  id:i+1, caller:fakeNum(), receiver:fakeNum(),
-  type:CALL_TYPES[rnd(0,2)], duration:rnd(10,3600),
-  city:CITIES[rnd(0,7)], datetime:fakeDate()
-}));
-
 const USERS = [
   {name:"Sarah Al-Rashidi",email:"sarah@pinevox.io",role:"admin",calls:1240,reports:34,grad:`linear-gradient(135deg,${T.cyan},${T.violet})`},
   {name:"Hamza Malik",email:"hamza@pinevox.io",role:"analyst",calls:860,reports:21,grad:`linear-gradient(135deg,${T.green},${T.cyan})`},
@@ -64,6 +57,105 @@ const USERS = [
   {name:"Zara Khan",email:"zara@pinevox.io",role:"analyst",calls:390,reports:9,grad:`linear-gradient(135deg,${T.red},${T.violet})`},
   {name:"Ali Hassan",email:"ali@pinevox.io",role:"analyst",calls:712,reports:18,grad:`linear-gradient(135deg,${T.green},#00a0ff)`},
 ];
+
+const GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1kqnCdclcGpnaVWUXO8BH1BFQtbwVJInqHDji-unrwRc/edit?usp=sharing";
+const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/1kqnCdclcGpnaVWUXO8BH1BFQtbwVJInqHDji-unrwRc/export?format=csv&gid=0";
+const LOCAL_FALLBACK_CSV_URL = "/mock_cdr.csv";
+
+const normHeader = h => h.toLowerCase().trim().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+const csvLine = line => {
+  const out = [];
+  let cur = "";
+  let quote = false;
+  for (let i = 0; i < line.length; i += 1) {
+    const ch = line[i];
+    if (ch === "\"") {
+      if (quote && line[i + 1] === "\"") { cur += "\""; i += 1; }
+      else { quote = !quote; }
+      continue;
+    }
+    if (ch === "," && !quote) { out.push(cur); cur = ""; continue; }
+    cur += ch;
+  }
+  out.push(cur);
+  return out;
+};
+const parseCsv = text => {
+  const lines = text.split(/\r?\n/).filter(l => l.trim() !== "");
+  if (lines.length < 2) return [];
+  const headers = csvLine(lines[0]).map(normHeader);
+  return lines.slice(1).map(line => {
+    const vals = csvLine(line);
+    const row = {};
+    headers.forEach((h, i) => { row[h] = (vals[i] || "").trim(); });
+    return row;
+  });
+};
+const getCol = (row, keys) => {
+  for (const k of keys) {
+    if (row[k]) return row[k];
+  }
+  return "";
+};
+const parseDur = raw => {
+  const v = String(raw || "").trim();
+  if (!v) return 0;
+  if (/^\d+$/.test(v)) return Number(v);
+  const parts = v.split(":").map(n => Number(n));
+  if (parts.length === 3 && parts.every(n => !Number.isNaN(n))) return parts[0] * 3600 + parts[1] * 60 + parts[2];
+  if (parts.length === 2 && parts.every(n => !Number.isNaN(n))) return parts[0] * 60 + parts[1];
+  const n = Number(v.replace(/[^\d.]/g, ""));
+  return Number.isFinite(n) ? Math.round(n) : 0;
+};
+const normType = raw => {
+  const v = String(raw || "").toLowerCase();
+  if (v === "true" || v === "1") return "Incoming";
+  if (v === "false" || v === "0") return "Outgoing";
+  if (v.includes("miss")) return "Missed";
+  if (v.includes("in")) return "Incoming";
+  if (v.includes("out")) return "Outgoing";
+  return "Outgoing";
+};
+const normTime = raw => {
+  const v = String(raw || "").trim();
+  if (!v) return fakeDate();
+  const s = v.replace("T", " ").replace("Z", "");
+  return s.length > 16 ? s.slice(0, 16) : s;
+};
+const mapSheetRows = rows => (
+  rows.map((row, i) => {
+    const caller = getCol(row, ["caller", "caller_number", "callernumber", "caller_no", "calling_number", "from", "source"]);
+    const receiver = getCol(row, ["receiver", "receiver_number", "receivernumber", "receiver_no", "called_number", "to", "destination"]);
+    const city = getCol(row, ["city", "caller_city", "location_city"]) || CITIES[rnd(0, CITIES.length - 1)];
+    const id = getCol(row, ["id", "cdr_id", "record_id"]) || i + 1;
+    const type = normType(getCol(row, ["type", "call_type", "call_direction", "calldirection", "direction"]));
+    const duration = parseDur(getCol(row, ["duration", "duration_sec", "duration_seconds", "seconds", "call_duration", "callduration"]));
+    const datetime = normTime(getCol(row, ["datetime", "date_time", "timestamp", "date", "call_date", "time", "call_start_time", "callstarttime"]));
+
+    return {
+      id,
+      caller: caller || fakeNum(),
+      receiver: receiver || fakeNum(),
+      type,
+      duration,
+      city,
+      datetime,
+    };
+  }).filter(r => r.caller || r.receiver)
+);
+const loadCdrFromCsvUrl = async (url) => {
+  try {
+    const resp = await fetch(url);
+    if (!resp.ok) return [];
+    const txt = await resp.text();
+    if (!txt || txt.trim().startsWith("<!DOCTYPE html")) return [];
+    return mapSheetRows(parseCsv(txt));
+  } catch {
+    return [];
+  }
+};
+const loadSheetCdrData = async () => loadCdrFromCsvUrl(GOOGLE_SHEET_CSV_URL);
+const loadFallbackCdrData = async () => loadCdrFromCsvUrl(LOCAL_FALLBACK_CSV_URL);
 
 const ENDPOINTS = [
   {method:"GET",path:"/cdr/records",desc:"Paginated CDR records",auth:true,
@@ -128,11 +220,17 @@ const StatCard = ({icon,value,label,delta,deltaUp,accent}) => (
   </div>
 );
 
-const Card = ({title,badge,children,style={}}) => (
+const Card = ({title,badge,children,style={},rawBadge=false}) => (
   <div style={{background:T.surf,border:`1px solid ${T.border}`,borderRadius:14,padding:22,...style}}>
     <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:18}}>
       <div style={{fontSize:13,fontWeight:700,letterSpacing:".04em"}}>{title}</div>
-      {badge&&<span style={{fontSize:10,fontFamily:"'JetBrains Mono',monospace",padding:"3px 9px",borderRadius:6,background:"rgba(0,220,255,.1)",color:T.cyan}}>{badge}</span>}
+      {badge && (
+        rawBadge ? badge : (
+          <span style={{fontSize:10,fontFamily:"'JetBrains Mono',monospace",padding:"3px 9px",borderRadius:6,background:"rgba(0,220,255,.1)",color:T.cyan}}>
+            {badge}
+          </span>
+        )
+      )}
     </div>
     {children}
   </div>
@@ -179,7 +277,7 @@ const Toast = ({msg,visible}) => (
 
 /* ─── LOGIN PAGE ─────────────────────────────────────── */
 const LoginPage = ({onLogin}) => {
-  const [email, setEmail] = useState("124@gmail.com");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState("analyst");
   const [loading, setLoading] = useState(false);
@@ -579,7 +677,7 @@ const Sidebar = ({page,setPage,role}) => {
 };
 
 /* ─── DASHBOARD PAGE ─────────────────────────────────── */
-const Dashboard = ({setPage,showToast}) => {
+const Dashboard = ({setPage,showToast,cdrData}) => {
   const cityData = [
     {city:"Karachi",count:14821,pct:88,color:T.cyan},
     {city:"Lahore",count:11204,pct:72,color:T.violet},
@@ -588,7 +686,16 @@ const Dashboard = ({setPage,showToast}) => {
     {city:"Peshawar",count:4509,pct:28,color:"#ff7b4f"},
     {city:"Multan",count:2705,pct:18,color:"#4fbfff"},
   ];
-  const preview = CDR_DATA.slice(0,6);
+  const PREVIEW_PER = 6;
+  const [previewPage, setPreviewPage] = useState(1);
+  const previewTotalPages = Math.max(1, Math.ceil(cdrData.length / PREVIEW_PER));
+  useEffect(() => {
+    setPreviewPage(p => Math.min(p, previewTotalPages));
+  }, [previewTotalPages]);
+  const preview = useMemo(() => {
+    const start = (previewPage - 1) * PREVIEW_PER;
+    return cdrData.slice(start, start + PREVIEW_PER);
+  }, [cdrData, previewPage]);
 
   return (
     <div style={{animation:"fadeUp .4s ease both"}}>
@@ -649,7 +756,31 @@ const Dashboard = ({setPage,showToast}) => {
       </div>
 
       {/* Preview table */}
-      <Card title="RECENT CALL RECORDS" badge={<BtnSm onClick={()=>setPage("cdr")}>View All →</BtnSm>}>
+      <Card
+        title="RECENT CALL RECORDS"
+        rawBadge
+        badge={
+          <div style={{display:"flex",alignItems:"center",gap:8}}>
+            <button
+              onClick={() => setPreviewPage((p) => Math.max(1, p - 1))}
+              disabled={previewPage === 1}
+              style={dashPgBtnStyle(previewPage === 1)}
+            >
+              ←
+            </button>
+            <span style={{fontSize:10,fontFamily:"'JetBrains Mono',monospace",color:T.cyan,minWidth:62,textAlign:"center"}}>
+              Page {previewPage}/{previewTotalPages}
+            </span>
+            <button
+              onClick={() => setPreviewPage((p) => Math.min(previewTotalPages, p + 1))}
+              disabled={previewPage === previewTotalPages}
+              style={dashPgBtnStyle(previewPage === previewTotalPages)}
+            >
+              →
+            </button>
+          </div>
+        }
+      >
         <TableGrid rows={preview} showIndex={false}/>
       </Card>
     </div>
@@ -692,20 +823,34 @@ const TableGrid = ({rows,showIndex=true,startIdx=0}) => (
 );
 const thStyle={padding:"12px 16px",textAlign:"left",fontSize:10,fontWeight:700,letterSpacing:".1em",textTransform:"uppercase",color:T.muted,borderBottom:`1px solid ${T.border}`};
 const tdStyle={padding:"12px 16px",fontSize:12,fontFamily:"'JetBrains Mono',monospace",borderBottom:`1px solid rgba(0,220,255,.04)`,transition:"background .15s"};
+const dashPgBtnStyle = disabled => ({
+  width:28,
+  height:28,
+  borderRadius:8,
+  border:`1px solid ${disabled ? T.border : T.border2}`,
+  background:disabled ? T.surf3 : T.surf,
+  color:disabled ? T.muted2 : T.cyan,
+  fontFamily:"'JetBrains Mono',monospace",
+  fontSize:12,
+  display:"grid",
+  placeItems:"center",
+  cursor:disabled ? "not-allowed" : "pointer",
+  transition:"all .2s",
+});
 
 /* ─── CDR PAGE ───────────────────────────────────────── */
-const CDRPage = ({showToast}) => {
+const CDRPage = ({showToast,cdrData}) => {
   const [filters,setFilters] = useState({type:"",city:""});
   const [page,setPage] = useState(1);
   const PER = 8;
 
-  const filtered = useMemo(()=>CDR_DATA.filter(r=>{
+  const filtered = useMemo(()=>cdrData.filter(r=>{
     const tm=!filters.type||r.type===filters.type;
     const cm=!filters.city||r.city.toLowerCase().includes(filters.city.toLowerCase());
     return tm&&cm;
-  }),[filters]);
+  }),[cdrData, filters]);
 
-  const totalPages = Math.ceil(filtered.length/PER);
+  const totalPages = Math.max(1, Math.ceil(filtered.length/PER));
   const rows = filtered.slice((page-1)*PER, page*PER);
 
   const apply = () => { setPage(1); showToast(`Filter applied · ${filtered.length} records found`); };
@@ -716,8 +861,11 @@ const CDRPage = ({showToast}) => {
         <div>
           <div style={{fontSize:24,fontWeight:800}}>CDR Records</div>
           <div style={{color:T.muted,fontFamily:"'JetBrains Mono',monospace",fontSize:11,marginTop:4}}>// Call Detail Records — Paginated API response</div>
+          <div style={{color:T.muted,fontFamily:"'JetBrains Mono',monospace",fontSize:10,marginTop:6}}>
+            Dataset: <a href={GOOGLE_SHEET_URL} target="_blank" rel="noreferrer" style={{color:T.cyan}}>Google Sheet</a>
+          </div>
         </div>
-        <BtnSm onClick={()=>showToast("Exporting CDR data as CSV…")}>↓ Export CSV</BtnSm>
+        <BtnSm onClick={()=>window.open(GOOGLE_SHEET_URL,"_blank","noopener,noreferrer")}>Open Google Sheet</BtnSm>
       </div>
 
       {/* Filters */}
@@ -762,14 +910,17 @@ const pgBtnStyle = active => ({
 });
 
 /* ─── TOP CALLERS PAGE ───────────────────────────────── */
-const CallersPage = () => {
+const CallersPage = ({cdrData}) => {
   const counts = {};
-  CDR_DATA.forEach(r=>{counts[r.caller]=(counts[r.caller]||0)+1});
+  cdrData.forEach(r=>{counts[r.caller]=(counts[r.caller]||0)+1});
   const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,10);
-  const max = sorted[0][1];
+  const max = sorted[0]?.[1] || 1;
 
   const hours = Array(24).fill(0);
-  CDR_DATA.forEach(r=>{ const h=parseInt(r.datetime.split(" ")[1].split(":")[0]); hours[h]++; });
+  cdrData.forEach(r=>{
+    const h = parseInt(String(r.datetime || "").split(" ")[1]?.split(":")[0], 10);
+    if (!Number.isNaN(h) && h >= 0 && h < 24) hours[h] += 1;
+  });
   const peakSlots = [[8,"08:00"],[10,"10:00"],[12,"12:00"],[14,"14:00"],[17,"17:00"],[20,"20:00"],[22,"22:00"]];
   const mxH = Math.max(...peakSlots.map(([h])=>hours[h]));
 
@@ -931,6 +1082,7 @@ export default function App() {
   const [role,setRole] = useState("admin");
   const [page,setPage] = useState("dashboard");
   const [toast,setToast] = useState({msg:"",visible:false});
+  const [cdrData,setCdrData] = useState([]);
 
   // Inject global styles
   useEffect(()=>{
@@ -939,6 +1091,24 @@ export default function App() {
     document.head.appendChild(el);
     return()=>el.remove();
   },[]);
+
+  useEffect(() => {
+    let dead = false;
+    const load = async () => {
+      const rows = await loadSheetCdrData();
+      if (dead) return;
+      if (rows.length > 0) {
+        setCdrData(rows);
+        return;
+      }
+
+      const fallbackRows = await loadFallbackCdrData();
+      if (dead) return;
+      setCdrData(fallbackRows);
+    };
+    load();
+    return () => { dead = true; };
+  }, []);
 
   const showToast = msg => {
     setToast({msg,visible:true});
@@ -961,9 +1131,9 @@ export default function App() {
   );
 
   const pages = {
-    dashboard:<Dashboard setPage={setPage} showToast={showToast}/>,
-    cdr:<CDRPage showToast={showToast}/>,
-    callers:<CallersPage/>,
+    dashboard:<Dashboard setPage={setPage} showToast={showToast} cdrData={cdrData}/>,
+    cdr:<CDRPage showToast={showToast} cdrData={cdrData}/>,
+    callers:<CallersPage cdrData={cdrData}/>,
     users:<UsersPage showToast={showToast}/>,
     api:<APIPage/>,
   };
