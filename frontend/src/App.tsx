@@ -1,6 +1,15 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 // @ts-nocheck
 import { useState, useEffect, useMemo } from "react";
+import { getApiErrorMessage } from "./api/client";
+import {
+  createUser as createUserRequest,
+  getUsers as getUsersRequest,
+  login as loginRequest,
+  logout as logoutRequest,
+  removeUser as removeUserRequest,
+  signup as signupRequest,
+} from "./services/authService";
 
 /* ─── TOKENS ─────────────────────────────────────────── */
 const T = {
@@ -86,13 +95,13 @@ const fakeDate = () => {
 };
 const fmtDur = s => { const m=Math.floor(s/60); return `${pad(m)}:${pad(s%60)}`; };
 
-const USERS = [
-  {name:"Sarah Al-Rashidi",email:"sarah@pinevox.io",role:"admin",calls:1240,reports:34,grad:`linear-gradient(135deg,${T.cyan},${T.violet})`},
-  {name:"Hamza Malik",email:"hamza@pinevox.io",role:"analyst",calls:860,reports:21,grad:`linear-gradient(135deg,${T.green},${T.cyan})`},
-  {name:"Nadia Qureshi",email:"nadia@pinevox.io",role:"analyst",calls:543,reports:15,grad:`linear-gradient(135deg,${T.violet},${T.red})`},
-  {name:"Omar Farooq",email:"omar@pinevox.io",role:"admin",calls:2100,reports:67,grad:`linear-gradient(135deg,${T.amber},#ff8c00)`},
-  {name:"Zara Khan",email:"zara@pinevox.io",role:"analyst",calls:390,reports:9,grad:`linear-gradient(135deg,${T.red},${T.violet})`},
-  {name:"Ali Hassan",email:"ali@pinevox.io",role:"analyst",calls:712,reports:18,grad:`linear-gradient(135deg,${T.green},#00a0ff)`},
+const USER_GRADIENTS = [
+  `linear-gradient(135deg,${T.cyan},${T.violet})`,
+  `linear-gradient(135deg,${T.green},${T.cyan})`,
+  `linear-gradient(135deg,${T.violet},${T.red})`,
+  `linear-gradient(135deg,${T.amber},#ff8c00)`,
+  `linear-gradient(135deg,${T.red},${T.violet})`,
+  `linear-gradient(135deg,${T.green},#00a0ff)`,
 ];
 
 const GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1kqnCdclcGpnaVWUXO8BH1BFQtbwVJInqHDji-unrwRc/edit?usp=sharing";
@@ -204,9 +213,13 @@ const ENDPOINTS = [
   {method:"GET",path:"/cdr/analytics/top-callers",desc:"Top callers by volume",auth:true,
    body:`GET /api/v1/cdr/analytics/top-callers?limit=10\n\nResponse 200:\n{\n  "callers": [\n    { "number": "+923001234567", "call_count": 214 }\n  ]\n}`},
   {method:"POST",path:"/auth/login",desc:"Authenticate — returns JWT",auth:false,
-   body:`POST /api/v1/auth/login\nContent-Type: application/json\n\n{\n  "email": "analyst@pinevox.io",\n  "password": "securepass123"\n}\n\nResponse 200:\n{\n  "token": "eyJhbGciOiJIUzI1NiIs...",\n  "role": "analyst",\n  "expires_in": 3600\n}`},
-  {method:"POST",path:"/auth/register",desc:"Create new user (Admin only)",auth:true,
-   body:`POST /api/v1/auth/register\nAuthorization: Bearer <ADMIN_JWT>\n\n{\n  "name": "New Analyst",\n  "email": "new@pinevox.io",\n  "password": "hashed_password",\n  "role": "analyst"\n}\n\nResponse 201:\n{\n  "message": "User created successfully",\n  "userId": "USR-088"\n}`},
+   body:`POST /api/v1/auth/login\nContent-Type: application/json\n\n{\n  "email": "analyst@pinevox.io",\n  "password": "securepass123"\n}\n\nResponse 200:\n{\n  "user": {\n    "id": "uuid",\n    "name": "Analyst User",\n    "email": "analyst@pinevox.io",\n    "role": "analyst"\n  },\n  "token": {\n    "access_token": "eyJhbGciOiJIUzI1NiIs...",\n    "token_type": "bearer",\n    "expires_in_seconds": 86400\n  }\n}`},
+  {method:"POST",path:"/auth/signup",desc:"Create new user account",auth:false,
+   body:`POST /api/v1/auth/signup\nContent-Type: application/json\n\n{\n  "name": "New Analyst",\n  "email": "new@pinevox.io",\n  "password": "securepass123",\n  "role": "analyst"\n}\n\nResponse 201:\n{\n  "user": {\n    "id": "uuid",\n    "name": "New Analyst",\n    "email": "new@pinevox.io",\n    "role": "analyst"\n  },\n  "token": {\n    "access_token": "eyJhbGciOiJIUzI1NiIs...",\n    "token_type": "bearer",\n    "expires_in_seconds": 86400\n  }\n}`},
+  {method:"POST",path:"/auth/users",desc:"Admin creates user",auth:true,
+   body:`POST /api/v1/auth/users\nAuthorization: Bearer <ADMIN_JWT>\nContent-Type: application/json\n\n{\n  "name": "Ops Admin",\n  "email": "ops.admin@pinevox.io",\n  "password": "securepass123",\n  "role": "admin"\n}\n\nResponse 201:\n{\n  "id": "uuid",\n  "name": "Ops Admin",\n  "email": "ops.admin@pinevox.io",\n  "role": "admin"\n}`},
+  {method:"DELETE",path:"/auth/users/{user_id}",desc:"Admin removes user",auth:true,
+   body:`DELETE /api/v1/auth/users/9f58c305-8f8d-4f46-a633-7f45f168e7de\nAuthorization: Bearer <ADMIN_JWT>\n\nResponse 200:\n{\n  "status": "deleted",\n  "user_id": "9f58c305-8f8d-4f46-a633-7f45f168e7de"\n}`},
 ];
 
 /* ─── SMALL COMPONENTS ───────────────────────────────── */
@@ -314,6 +327,8 @@ const Toast = ({msg,visible}) => (
 
 /* ─── LOGIN PAGE ─────────────────────────────────────── */
 const LoginPage = ({onLogin,theme,onToggleTheme}) => {
+  const [mode, setMode] = useState("login");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -328,16 +343,40 @@ const LoginPage = ({onLogin,theme,onToggleTheme}) => {
     return () => clearTimeout(t);
   }, []);
 
-  const handleLogin = () => {
-    if (!email) { setError("Email is required"); return; }
+  const isSignupMode = mode === "signup";
+
+  const switchMode = (nextMode) => {
+    if (loading) return;
+    setMode(nextMode);
+    setError("");
+    setSuccess(false);
+    setFocusedField(null);
+  };
+
+  const handleLogin = async () => {
+    if (loading || success) return;
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedName = name.trim();
+    if (isSignupMode && !normalizedName) { setError("Name is required"); return; }
+    if (!normalizedEmail) { setError("Email is required"); return; }
     if (!password) { setError("Password is required"); return; }
+    if (password.length < 8) { setError("Password must be at least 8 characters"); return; }
+
     setError("");
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+
+    try {
+      const auth = isSignupMode
+        ? await signupRequest({ name: normalizedName, email: normalizedEmail, password, role: "analyst" })
+        : await loginRequest({ email: normalizedEmail, password });
       setSuccess(true);
-      setTimeout(() => onLogin("analyst"), 350);
-    }, 1800);
+      setTimeout(() => onLogin(auth.user), 320);
+    } catch (err) {
+      setError(getApiErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -364,8 +403,25 @@ const LoginPage = ({onLogin,theme,onToggleTheme}) => {
         </button>
 
         <div style={loginS.titleBlock}>
-          <h1 style={loginS.title}>Welcome Back</h1>
+          <h1 style={loginS.title}>{isSignupMode ? "Create Account" : "Welcome Back"}</h1>
         </div>
+
+        {isSignupMode && (
+          <div style={loginS.inputWrap(focusedField === "name", false)}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={focusedField === "name" ? "var(--cyan, #2cc6ff)" : "var(--muted, #8ea9d3)"} strokeWidth="2">
+              <circle cx="12" cy="8" r="4"/><path d="M4 20c2-4 5-6 8-6s6 2 8 6"/>
+            </svg>
+            <input
+              type="text"
+              value={name}
+              onChange={e => { setName(e.target.value); setError(""); }}
+              onFocus={() => setFocusedField("name")}
+              onBlur={() => setFocusedField(null)}
+              placeholder="Full name"
+              style={loginS.input}
+            />
+          </div>
+        )}
 
         <div style={loginS.inputWrap(focusedField === "email", false)}>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={focusedField === "email" ? "var(--cyan, #2cc6ff)" : "var(--muted, #8ea9d3)"} strokeWidth="2">
@@ -412,7 +468,7 @@ const LoginPage = ({onLogin,theme,onToggleTheme}) => {
               <line x1="12" y1="9" x2="12" y2="13" stroke="white" strokeWidth="2"/><circle cx="12" cy="17" r="1" fill="white"/>
             </svg>
             <div>
-              <div style={loginS.errorTitle}>Login Error</div>
+              <div style={loginS.errorTitle}>{isSignupMode ? "Signup Error" : "Login Error"}</div>
               <div style={loginS.errorMsg}>{error}</div>
             </div>
           </div>
@@ -422,16 +478,22 @@ const LoginPage = ({onLogin,theme,onToggleTheme}) => {
           {success ? (
             <span style={loginS.btnRow}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-              Access Granted
+              {isSignupMode ? "Account Created" : "Access Granted"}
             </span>
           ) : loading ? (
-            <span style={loginS.btnRow}><span style={loginS.spinner} /> Signing in…</span>
-          ) : "Login"}
+            <span style={loginS.btnRow}><span style={loginS.spinner} /> {isSignupMode ? "Creating account..." : "Signing in..."}</span>
+          ) : (isSignupMode ? "Sign Up" : "Login")}
         </button>
 
         <p style={loginS.signupText}>
-          Don&apos;t have an account?{" "}
-          <span style={loginS.signupLink}>Sign Up</span>
+          {isSignupMode ? "Already have an account?" : "Don&apos;t have an account?"}{" "}
+          <button
+            type="button"
+            style={loginS.signupSwitchBtn}
+            onClick={() => switchMode(isSignupMode ? "login" : "signup")}
+          >
+            {isSignupMode ? "Login" : "Sign Up"}
+          </button>
         </p>
       </div>
 
@@ -621,10 +683,29 @@ const loginS = {
     fontWeight: 600,
     cursor: "pointer",
   },
+  signupSwitchBtn: {
+    border: "none",
+    background: "transparent",
+    color: "var(--cyan, #2cc6ff)",
+    fontWeight: 600,
+    cursor: "pointer",
+    fontFamily: "'Space Grotesk', sans-serif",
+    fontSize: 13,
+    padding: 0,
+  },
 };
 
 /* ─── TOPBAR ─────────────────────────────────────────── */
-const Topbar = ({role,theme,onToggleTheme}) => {
+const Topbar = ({role,userName,theme,onToggleTheme}) => {
+  const displayName = (userName || "").trim() || (role==="admin" ? "Admin User" : "Analyst User");
+  const initials = displayName
+    .split(" ")
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
   return (
     <div style={{
       display:"flex",alignItems:"center",padding:"0 28px",height:56,
@@ -659,10 +740,10 @@ const Topbar = ({role,theme,onToggleTheme}) => {
         </button>
         <div style={{display:"flex",alignItems:"center",gap:8,padding:"6px 12px 6px 6px",borderRadius:24,background:T.surf,border:`1px solid ${T.border}`}}>
           <div style={{width:28,height:28,borderRadius:"50%",background:`linear-gradient(135deg,${T.cyan},${T.violet})`,display:"grid",placeItems:"center",fontSize:11,fontWeight:700,color:"#05080f"}}>
-            {role==="admin"?"A":"AN"}
+            {initials || (role==="admin" ? "A" : "AN")}
           </div>
           <div>
-            <div style={{fontSize:12,fontWeight:600}}>{role==="admin"?"Admin User":"Analyst User"}</div>
+            <div style={{fontSize:12,fontWeight:600}}>{displayName}</div>
             <div style={{fontSize:10,color:T.muted,fontFamily:"'JetBrains Mono',monospace"}}>{role}</div>
           </div>
         </div>
@@ -674,9 +755,9 @@ const Topbar = ({role,theme,onToggleTheme}) => {
 /* ─── SIDEBAR ────────────────────────────────────────── */
 const NAV = [
   {id:"dashboard",icon:"▦",label:"Dashboard",section:"Analytics"},
-  {id:"users",icon:"⚇",label:"Users",section:"Management"},
+  {id:"users",icon:"⚇",label:"Users",section:"Management",adminOnly:true},
   {id:"settings",icon:"⚙",label:"Settings",section:"Management"},
-  {id:"api",icon:"⌥",label:"API Reference",section:"Management"},
+  {id:"api",icon:"⌥",label:"API Reference",section:"Management",adminOnly:true},
 ];
 
 const Sidebar = ({page,setPage,role,onLogout}) => {
@@ -1305,63 +1386,274 @@ const CallersPage = ({cdrData}) => {
 };
 
 /* ─── USERS PAGE ─────────────────────────────────────── */
-const UsersPage = ({showToast}) => (
-  <div style={{animation:"fadeUp .4s ease both"}}>
-    <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:28}}>
-      <div>
-        <div style={{fontSize:24,fontWeight:800}}>User Management</div>
-        <div style={{color:T.muted,fontFamily:"'JetBrains Mono',monospace",fontSize:11,marginTop:4}}>// Role-based access control · JWT auth</div>
-      </div>
-      <BtnSm onClick={()=>showToast("API: POST /auth/register — Add user flow")}>+ Add User</BtnSm>
-    </div>
-    <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:16}}>
-      {USERS.map(u=>(
-        <div key={u.email} style={{
-          background:T.surf,border:`1px solid ${T.border}`,borderRadius:14,padding:22,
-          transition:"all .2s",
-        }}
-        onMouseEnter={e=>{e.currentTarget.style.borderColor=T.border2;e.currentTarget.style.transform="translateY(-2px)"}}
-        onMouseLeave={e=>{e.currentTarget.style.borderColor=T.border;e.currentTarget.style.transform="translateY(0)"}}
-        >
-          <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
-            <div style={{width:44,height:44,borderRadius:"50%",background:u.grad,display:"grid",placeItems:"center",fontSize:14,fontWeight:800,color:"#05080f",flexShrink:0}}>
-              {u.name.split(" ").map(w=>w[0]).join("")}
-            </div>
-            <div>
-              <div style={{fontSize:14,fontWeight:700}}>{u.name}</div>
-              <div style={{fontSize:11,color:T.muted,fontFamily:"'JetBrains Mono',monospace"}}>{u.email}</div>
-            </div>
-          </div>
-          <span style={{
-            display:"inline-flex",alignItems:"center",gap:5,
-            padding:"4px 10px",borderRadius:8,fontSize:10,fontWeight:700,letterSpacing:".06em",textTransform:"uppercase",
-            background:u.role==="admin"?"rgba(139,92,246,.12)":"rgba(44,198,255,.10)",
-            color:u.role==="admin"?T.violet:T.cyan,
-          }}>● {u.role}</span>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginTop:14}}>
-            {[[u.calls.toLocaleString(),"API Calls"],[u.reports,"Reports"]].map(([v,l])=>(
-              <div key={l} style={{background:T.surf2,borderRadius:8,padding:"8px 10px"}}>
-                <div style={{fontSize:16,fontWeight:800,marginBottom:2}}>{v}</div>
-                <div style={{fontSize:10,color:T.muted,letterSpacing:".05em"}}>{l}</div>
-              </div>
-            ))}
-          </div>
-          <div style={{display:"flex",gap:8,marginTop:14}}>
-            {["Edit","Revoke"].map(action=>(
-              <button key={action} onClick={()=>showToast(`${action}: ${u.name}`)} style={{
-                flex:1,padding:7,borderRadius:8,border:`1px solid ${T.border}`,background:"transparent",
-                color:T.muted,fontFamily:"'Space Grotesk',sans-serif",fontSize:11,fontWeight:600,cursor:"pointer",transition:"all .2s",
-              }}
-              onMouseEnter={e=>{e.currentTarget.style.borderColor=action==="Revoke"?T.red:T.cyan;e.currentTarget.style.color=action==="Revoke"?T.red:T.cyan}}
-              onMouseLeave={e=>{e.currentTarget.style.borderColor=T.border;e.currentTarget.style.color=T.muted}}
-              >{action}</button>
-            ))}
-          </div>
+const UsersPage = ({showToast,currentUserId}) => {
+  const [users, setUsers] = useState([]);
+  const [loadingUsers, setLoadingUsers] = useState(true);
+  const [usersError, setUsersError] = useState("");
+  const [creatingUser, setCreatingUser] = useState(false);
+  const [deletingUserId, setDeletingUserId] = useState("");
+  const [newUser, setNewUser] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "analyst",
+  });
+  const formatUsersError = (err) => {
+    const message = getApiErrorMessage(err);
+    if (message.includes("status code 404")) {
+      return "Users API endpoint not found. Restart backend to load latest auth routes.";
+    }
+    return message;
+  };
+
+  const loadUsers = async () => {
+    setLoadingUsers(true);
+    setUsersError("");
+    try {
+      const records = await getUsersRequest();
+      setUsers(records);
+    } catch (err) {
+      setUsers([]);
+      setUsersError(formatUsersError(err));
+    } finally {
+      setLoadingUsers(false);
+    }
+  };
+
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  const onNewUserChange = (field, value) => {
+    setNewUser((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleAddUser = async () => {
+    if (creatingUser) return;
+
+    const name = newUser.name.trim();
+    const email = newUser.email.trim().toLowerCase();
+    const password = newUser.password;
+    const role = newUser.role === "admin" ? "admin" : "analyst";
+
+    if (!name) {
+      setUsersError("Name is required");
+      return;
+    }
+    if (!email) {
+      setUsersError("Email is required");
+      return;
+    }
+    if (!password) {
+      setUsersError("Password is required");
+      return;
+    }
+    if (password.length < 8) {
+      setUsersError("Password must be at least 8 characters");
+      return;
+    }
+
+    setCreatingUser(true);
+    setUsersError("");
+    try {
+      await createUserRequest({ name, email, password, role });
+      setNewUser({ name: "", email: "", password: "", role: "analyst" });
+      await loadUsers();
+      showToast("User added successfully");
+    } catch (err) {
+      const message = formatUsersError(err);
+      setUsersError(message);
+      showToast(`Add user failed · ${message}`);
+    } finally {
+      setCreatingUser(false);
+    }
+  };
+
+  const handleRemoveUser = async (user) => {
+    if (!user?.id || deletingUserId) return;
+    if (String(user.id) === String(currentUserId)) {
+      showToast("You cannot remove your own account");
+      return;
+    }
+
+    const confirmed = window.confirm(`Remove user "${user.name || user.email}"?`);
+    if (!confirmed) return;
+
+    setDeletingUserId(String(user.id));
+    setUsersError("");
+    try {
+      await removeUserRequest(String(user.id));
+      setUsers((prev) => prev.filter((x) => String(x.id) !== String(user.id)));
+      showToast("User removed successfully");
+    } catch (err) {
+      const message = formatUsersError(err);
+      setUsersError(message);
+      showToast(`Remove user failed · ${message}`);
+    } finally {
+      setDeletingUserId("");
+    }
+  };
+
+  return (
+    <div style={{animation:"fadeUp .4s ease both"}}>
+      <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",marginBottom:28}}>
+        <div>
+          <div style={{fontSize:24,fontWeight:800}}>User Management</div>
+          <div style={{color:T.muted,fontFamily:"'JetBrains Mono',monospace",fontSize:11,marginTop:4}}>// Live users from database</div>
         </div>
-      ))}
+        <BtnSm onClick={()=>{ loadUsers(); showToast("Refreshing users from DB"); }}>Refresh</BtnSm>
+      </div>
+
+      <div style={{background:T.surf,border:`1px solid ${T.border}`,borderRadius:14,padding:16,marginBottom:16}}>
+        <div style={{fontSize:12,fontWeight:700,letterSpacing:".06em",marginBottom:10,color:T.muted,textTransform:"uppercase"}}>Add User</div>
+        <div style={{display:"grid",gridTemplateColumns:"1.2fr 1.4fr 1fr 0.85fr auto",gap:8,alignItems:"end"}}>
+          <div>
+            <div style={{fontSize:10,color:T.muted,marginBottom:4}}>Name</div>
+            <input
+              value={newUser.name}
+              onChange={(e)=>onNewUserChange("name", e.target.value)}
+              placeholder="Full name"
+              disabled={creatingUser}
+            />
+          </div>
+          <div>
+            <div style={{fontSize:10,color:T.muted,marginBottom:4}}>Email</div>
+            <input
+              type="email"
+              value={newUser.email}
+              onChange={(e)=>onNewUserChange("email", e.target.value)}
+              placeholder="user@company.com"
+              disabled={creatingUser}
+            />
+          </div>
+          <div>
+            <div style={{fontSize:10,color:T.muted,marginBottom:4}}>Password</div>
+            <input
+              type="password"
+              value={newUser.password}
+              onChange={(e)=>onNewUserChange("password", e.target.value)}
+              placeholder="Min 8 chars"
+              disabled={creatingUser}
+            />
+          </div>
+          <div>
+            <div style={{fontSize:10,color:T.muted,marginBottom:4}}>Role</div>
+            <select
+              value={newUser.role}
+              onChange={(e)=>onNewUserChange("role", e.target.value)}
+              disabled={creatingUser}
+            >
+              <option value="analyst">analyst</option>
+              <option value="admin">admin</option>
+            </select>
+          </div>
+          <button
+            onClick={handleAddUser}
+            disabled={creatingUser}
+            style={{
+              height:36,
+              padding:"0 14px",
+              borderRadius:8,
+              border:`1px solid ${T.border2}`,
+              background:creatingUser ? T.surf3 : "rgba(44,198,255,.1)",
+              color:creatingUser ? T.muted2 : T.cyan,
+              fontFamily:"'Space Grotesk',sans-serif",
+              fontSize:12,
+              fontWeight:700,
+              cursor:creatingUser ? "not-allowed" : "pointer",
+            }}
+          >
+            {creatingUser ? "Adding..." : "Add User"}
+          </button>
+        </div>
+      </div>
+
+      {loadingUsers && (
+        <div style={{background:T.surf,border:`1px solid ${T.border}`,borderRadius:14,padding:20,color:T.muted,fontFamily:"'JetBrains Mono',monospace",fontSize:12}}>
+          Loading users...
+        </div>
+      )}
+
+      {!loadingUsers && usersError && (
+        <div style={{background:"rgba(255,107,157,.08)",border:"1px solid rgba(255,107,157,.25)",borderRadius:12,padding:16,color:T.red,fontFamily:"'JetBrains Mono',monospace",fontSize:12}}>
+          Failed to load users: {usersError}
+        </div>
+      )}
+
+      {!loadingUsers && !usersError && users.length === 0 && (
+        <div style={{background:T.surf,border:`1px solid ${T.border}`,borderRadius:14,padding:20,color:T.muted,fontFamily:"'JetBrains Mono',monospace",fontSize:12}}>
+          No users found in database.
+        </div>
+      )}
+
+      {!loadingUsers && !usersError && users.length > 0 && (
+        <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:16}}>
+          {users.map((u, i) => {
+            const created = new Date(u.created_at);
+            const createdLabel = Number.isNaN(created.getTime())
+              ? (u.created_at || "-")
+              : created.toLocaleString();
+
+            return (
+              <div key={u.id || u.email || i} style={{
+                background:T.surf,border:`1px solid ${T.border}`,borderRadius:14,padding:22,
+                transition:"all .2s",
+              }}
+              onMouseEnter={e=>{e.currentTarget.style.borderColor=T.border2;e.currentTarget.style.transform="translateY(-2px)"}}
+              onMouseLeave={e=>{e.currentTarget.style.borderColor=T.border;e.currentTarget.style.transform="translateY(0)"}}
+              >
+                <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:16}}>
+                  <div style={{width:44,height:44,borderRadius:"50%",background:USER_GRADIENTS[i % USER_GRADIENTS.length],display:"grid",placeItems:"center",fontSize:14,fontWeight:800,color:"#05080f",flexShrink:0}}>
+                    {String(u.name || "U").split(" ").map(w=>w[0]).join("").slice(0,2).toUpperCase()}
+                  </div>
+                  <div>
+                    <div style={{fontSize:14,fontWeight:700}}>{u.name || "-"}</div>
+                    <div style={{fontSize:11,color:T.muted,fontFamily:"'JetBrains Mono',monospace"}}>{u.email || "-"}</div>
+                  </div>
+                </div>
+
+                <span style={{
+                  display:"inline-flex",alignItems:"center",gap:5,
+                  padding:"4px 10px",borderRadius:8,fontSize:10,fontWeight:700,letterSpacing:".06em",textTransform:"uppercase",
+                  background:u.role==="admin"?"rgba(139,92,246,.12)":"rgba(44,198,255,.10)",
+                  color:u.role==="admin"?T.violet:T.cyan,
+                }}>● {u.role || "analyst"}</span>
+
+                <div style={{display:"grid",gridTemplateColumns:"1fr",gap:8,marginTop:14}}>
+                  <div style={{background:T.surf2,borderRadius:8,padding:"8px 10px"}}>
+                    <div style={{fontSize:11,color:T.muted,letterSpacing:".05em",marginBottom:4}}>Created At</div>
+                    <div style={{fontSize:12,fontFamily:"'JetBrains Mono',monospace"}}>{createdLabel}</div>
+                  </div>
+                </div>
+
+                <div style={{marginTop:12,display:"flex",justifyContent:"flex-end"}}>
+                  <button
+                    onClick={() => handleRemoveUser(u)}
+                    disabled={String(u.id) === String(currentUserId) || deletingUserId === String(u.id)}
+                    style={{
+                      height:30,
+                      padding:"0 10px",
+                      borderRadius:8,
+                      border:`1px solid ${String(u.id) === String(currentUserId) ? T.border : "rgba(255,107,157,.42)"}`,
+                      background:String(u.id) === String(currentUserId) ? T.surf3 : "rgba(255,107,157,.12)",
+                      color:String(u.id) === String(currentUserId) ? T.muted2 : T.red,
+                      fontFamily:"'Space Grotesk',sans-serif",
+                      fontSize:11,
+                      fontWeight:700,
+                      cursor:(String(u.id) === String(currentUserId) || deletingUserId === String(u.id)) ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    {String(u.id) === String(currentUserId) ? "Current User" : (deletingUserId === String(u.id) ? "Removing..." : "Remove")}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
-  </div>
-);
+  );
+};
 
 /* ─── SETTINGS PAGE ─────────────────────────────────── */
 const SettingsPage = ({theme,onToggleTheme}) => (
@@ -1445,6 +1737,8 @@ const APIPage = () => {
 export default function App() {
   const [authed,setAuthed] = useState(false);
   const [role,setRole] = useState("admin");
+  const [userName,setUserName] = useState("");
+  const [userId,setUserId] = useState("");
   const [page,setPage] = useState("dashboard");
   const [toast,setToast] = useState({msg:"",visible:false});
   const [cdrData,setCdrData] = useState([]);
@@ -1484,22 +1778,42 @@ export default function App() {
     localStorage.setItem("tip-theme", theme);
   }, [theme]);
 
+  const allowedPages = role === "admin"
+    ? ["dashboard","users","settings","api"]
+    : ["dashboard","settings"];
+
   useEffect(() => {
-    if (!["dashboard","users","settings","api"].includes(page)) {
+    if (!allowedPages.includes(page)) {
       setPage("dashboard");
     }
-  }, [page]);
+  }, [page, role]);
 
   const showToast = msg => {
     setToast({msg,visible:true});
     setTimeout(()=>setToast(t=>({...t,visible:false})),3000);
   };
 
-  const handleLogin = r => {
-    setRole(r);
+  const handleLogin = user => {
+    const nextRole = user?.role === "admin" ? "admin" : "analyst";
+    setRole(nextRole);
+    setUserName(user?.name || "");
+    setUserId(user?.id || "");
     setPage("dashboard");
     setAuthed(true);
-    showToast(`Authenticated via JWT · Welcome, ${r==="admin"?"Admin":"Analyst"}!`);
+    showToast(`Authenticated via bcrypt · Welcome, ${user?.name || (nextRole==="admin"?"Admin":"Analyst")}!`);
+  };
+  const handleLogout = async () => {
+    try {
+      await logoutRequest();
+    } catch {
+      // Keep logout UX responsive even if API is unavailable.
+    }
+    setAuthed(false);
+    setPage("dashboard");
+    setRole("analyst");
+    setUserName("");
+    setUserId("");
+    showToast("Logged out successfully");
   };
   const toggleTheme = () => setTheme(t => t === "dark" ? "light" : "dark");
 
@@ -1513,9 +1827,11 @@ export default function App() {
 
   const pages = {
     dashboard:<Dashboard setPage={setPage} showToast={showToast} cdrData={cdrData}/>,
-    users:<UsersPage showToast={showToast}/>,
     settings:<SettingsPage theme={theme} onToggleTheme={toggleTheme}/>,
-    api:<APIPage/>,
+    ...(role === "admin" ? {
+      users:<UsersPage showToast={showToast} currentUserId={userId}/>,
+      api:<APIPage/>,
+    } : {}),
   };
 
   return (
@@ -1526,11 +1842,11 @@ export default function App() {
       <div style={{position:"fixed",width:600,height:600,borderRadius:"50%",filter:"blur(140px)",background:"rgba(139,92,246,.05)",bottom:-150,right:-150,animation:"blobdrift 18s ease-in-out infinite alternate-reverse",pointerEvents:"none",zIndex:0}}/>
 
       <div style={{display:"flex",flexDirection:"column",height:"100vh",overflow:"hidden",position:"relative",zIndex:1}}>
-        <Topbar role={role} theme={theme} onToggleTheme={toggleTheme}/>
+        <Topbar role={role} userName={userName} theme={theme} onToggleTheme={toggleTheme}/>
         <div style={{display:"grid",gridTemplateColumns:"220px 1fr",flex:1,height:"calc(100vh - 56px)",overflow:"hidden"}}>
-          <Sidebar page={page} setPage={setPage} role={role} onLogout={()=>{setAuthed(false);setPage("dashboard")}}/>
+          <Sidebar page={page} setPage={setPage} role={role} onLogout={handleLogout}/>
           <main style={{padding:28,overflowY:"auto",minHeight:0,background:"transparent"}}>
-            {pages[page]}
+            {pages[page] || pages.dashboard}
           </main>
         </div>
       </div>
