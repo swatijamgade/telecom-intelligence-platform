@@ -4,11 +4,48 @@ import { useState, useEffect, useMemo } from "react";
 
 /* ─── TOKENS ─────────────────────────────────────────── */
 const T = {
-  bg: "#030c24", surf: "#081a3d", surf2: "#0b224e", surf3: "#122d63",
-  border: "rgba(70,130,220,0.28)", border2: "rgba(44,198,255,0.55)",
-  cyan: "#2cc6ff", cyanD: "#1d8be8", violet: "#8a7aff",
-  green: "#26d6a1", amber: "#ffc54d", red: "#ff6b9d",
-  text: "#e9f4ff", muted: "#8ea9d3", muted2: "#5a73a0",
+  bg: "var(--bg, #030c24)", surf: "var(--surf, #081a3d)", surf2: "var(--surf2, #0b224e)", surf3: "var(--surf3, #122d63)",
+  border: "var(--border, rgba(70,130,220,0.28))", border2: "var(--border2, rgba(44,198,255,0.55))",
+  cyan: "var(--cyan, #2cc6ff)", cyanD: "var(--cyanD, #1d8be8)", violet: "var(--violet, #8a7aff)",
+  green: "var(--green, #26d6a1)", amber: "var(--amber, #ffc54d)", red: "var(--red, #ff6b9d)",
+  text: "var(--text, #e9f4ff)", muted: "var(--muted, #8ea9d3)", muted2: "var(--muted2, #5a73a0)",
+};
+
+const THEME_VARS = {
+  dark: {
+    "--bg": "#030c24",
+    "--surf": "#081a3d",
+    "--surf2": "#0b224e",
+    "--surf3": "#122d63",
+    "--border": "rgba(70,130,220,0.28)",
+    "--border2": "rgba(44,198,255,0.55)",
+    "--cyan": "#2cc6ff",
+    "--cyanD": "#1d8be8",
+    "--violet": "#8a7aff",
+    "--green": "#26d6a1",
+    "--amber": "#ffc54d",
+    "--red": "#ff6b9d",
+    "--text": "#e9f4ff",
+    "--muted": "#8ea9d3",
+    "--muted2": "#5a73a0",
+  },
+  light: {
+    "--bg": "#edf3ff",
+    "--surf": "#ffffff",
+    "--surf2": "#f4f8ff",
+    "--surf3": "#e5edff",
+    "--border": "rgba(36,84,158,0.20)",
+    "--border2": "rgba(22,120,236,0.45)",
+    "--cyan": "#0b7bff",
+    "--cyanD": "#095fc8",
+    "--violet": "#6d62e8",
+    "--green": "#129b73",
+    "--amber": "#c78100",
+    "--red": "#d44f83",
+    "--text": "#0e1d3a",
+    "--muted": "#5974a0",
+    "--muted2": "#8aa0c3",
+  },
 };
 
 /* ─── GLOBAL STYLES ──────────────────────────────────── */
@@ -202,7 +239,7 @@ const StatCard = ({icon,value,label,delta,deltaUp,accent}) => (
     <div style={{
       width:36,height:36,borderRadius:9,marginBottom:14,fontSize:18,
       display:"grid",placeItems:"center",
-      background:`${accent}1a`,color:accent,
+      background:"rgba(44,198,255,.14)",color:accent,
     }}>{icon}</div>
     <div style={{fontSize:28,fontWeight:800,lineHeight:1,marginBottom:4}}>{value}</div>
     <div style={{fontSize:11,color:T.muted,fontWeight:600,letterSpacing:".06em",textTransform:"uppercase"}}>{label}</div>
@@ -251,6 +288,14 @@ const BtnSm = ({children,onClick}) => (
   >{children}</button>
 );
 
+const ThemeSparkIcon = ({size=14}) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="2.2"/>
+    <path d="M12 4.6v2.1M12 17.3v2.1M4.6 12h2.1M17.3 12h2.1"/>
+    <path d="M6.9 6.9l1.5 1.5M15.6 15.6l1.5 1.5M17.1 6.9l-1.5 1.5M8.4 15.6l-1.5 1.5"/>
+  </svg>
+);
+
 /* ─── TOAST ──────────────────────────────────────────── */
 const Toast = ({msg,visible}) => (
   <div style={{
@@ -268,10 +313,9 @@ const Toast = ({msg,visible}) => (
 );
 
 /* ─── LOGIN PAGE ─────────────────────────────────────── */
-const LoginPage = ({onLogin}) => {
+const LoginPage = ({onLogin,theme,onToggleTheme}) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("analyst");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -292,40 +336,39 @@ const LoginPage = ({onLogin}) => {
     setTimeout(() => {
       setLoading(false);
       setSuccess(true);
-      setTimeout(() => onLogin(role), 350);
+      setTimeout(() => onLogin("analyst"), 350);
     }, 1800);
   };
 
   return (
     <div style={loginS.root}>
-      <div style={{ ...loginS.blob, top: "-100px", left: "-80px", background: "radial-gradient(circle, rgba(251,113,133,0.18) 0%, transparent 70%)" }} />
-      <div style={{ ...loginS.blob, bottom: "-80px", right: "-60px", background: "radial-gradient(circle, rgba(251,146,60,0.13) 0%, transparent 70%)", width: 450, height: 450 }} />
-      <div style={{ ...loginS.blob, top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "radial-gradient(circle, rgba(253,186,116,0.07) 0%, transparent 70%)", width: 600, height: 600 }} />
+      <div style={{ ...loginS.blob, top: "-100px", left: "-80px", background: "radial-gradient(circle, rgba(44,198,255,0.2) 0%, transparent 70%)" }} />
+      <div style={{ ...loginS.blob, bottom: "-80px", right: "-60px", background: "radial-gradient(circle, rgba(138,122,255,0.16) 0%, transparent 70%)", width: 450, height: 450 }} />
+      <div style={{ ...loginS.blob, top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "radial-gradient(circle, rgba(38,214,161,0.1) 0%, transparent 70%)", width: 600, height: 600 }} />
 
       <div style={{ ...loginS.card, opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(20px)", transition: "all 0.6s ease" }}>
 
-        <div style={loginS.themeBtn}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#f43f5e" strokeWidth="2">
-            <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-          </svg>
-        </div>
+        <button
+          onClick={onToggleTheme}
+          style={{
+            ...loginS.themeBtn,
+            background: theme === "dark" ? "#ffffff" : "var(--surf2, #0b224e)",
+            border: theme === "dark" ? "2px solid #202b44" : "1px solid var(--border2, rgba(44,198,255,0.55))",
+          }}
+          aria-label="Toggle theme"
+          title="Toggle theme"
+        >
+          <span style={{display:"grid",placeItems:"center",color:"var(--cyan, #2cc6ff)"}} aria-hidden="true">
+            <ThemeSparkIcon size={14}/>
+          </span>
+        </button>
 
         <div style={loginS.titleBlock}>
           <h1 style={loginS.title}>Welcome Back</h1>
-          <p style={loginS.subtitle}>Login to access your dashboard 🚀</p>
-        </div>
-
-        <div style={loginS.roleWrap}>
-          <div style={{ ...loginS.roleSlider, left: role === "analyst" ? 4 : "calc(50% + 2px)" }} />
-          {["analyst", "admin"].map(r => (
-            <button key={r} onClick={() => setRole(r)} style={{ ...loginS.roleBtn, color: role === r ? "#fff" : "#c4909a" }}>
-              {r}
-            </button>
-          ))}
         </div>
 
         <div style={loginS.inputWrap(focusedField === "email", false)}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={focusedField === "email" ? "#f43f5e" : "#c4b5bd"} strokeWidth="2">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={focusedField === "email" ? "var(--cyan, #2cc6ff)" : "var(--muted, #8ea9d3)"} strokeWidth="2">
             <rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/>
           </svg>
           <input
@@ -340,7 +383,7 @@ const LoginPage = ({onLogin}) => {
         </div>
 
         <div style={loginS.inputWrap(focusedField === "password", !!error)}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={error ? "#f87171" : focusedField === "password" ? "#f43f5e" : "#c4b5bd"} strokeWidth="2">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={error ? "var(--red, #ff6b9d)" : focusedField === "password" ? "var(--cyan, #2cc6ff)" : "var(--muted, #8ea9d3)"} strokeWidth="2">
             <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
           </svg>
           <input
@@ -353,7 +396,7 @@ const LoginPage = ({onLogin}) => {
             style={loginS.input}
           />
           <span onClick={() => setShowPassword(!showPassword)} style={loginS.eyeBtn}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c4b5bd" strokeWidth="2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted, #8ea9d3)" strokeWidth="2">
               {showPassword
                 ? <><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></>
                 : <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></>
@@ -364,7 +407,7 @@ const LoginPage = ({onLogin}) => {
 
         {error && (
           <div style={loginS.errorBox}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="#f43f5e">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="var(--red, #ff6b9d)">
               <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
               <line x1="12" y1="9" x2="12" y2="13" stroke="white" strokeWidth="2"/><circle cx="12" cy="17" r="1" fill="white"/>
             </svg>
@@ -393,10 +436,10 @@ const LoginPage = ({onLogin}) => {
       </div>
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700;800&display=swap');
         input:focus { outline: none; }
         button:focus { outline: none; }
-        input::placeholder { color: #d4b8be; }
+        input::placeholder { color: var(--muted, #8ea9d3); }
         @keyframes errorSlide { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
       `}</style>
     </div>
@@ -406,11 +449,11 @@ const LoginPage = ({onLogin}) => {
 const loginS = {
   root: {
     minHeight: "100vh",
-    background: "#fff5f6",
+    background: "linear-gradient(180deg, var(--bg, #030c24) 0%, var(--surf2, #0b224e) 100%)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    fontFamily: "'Inter', sans-serif",
+    fontFamily: "'Space Grotesk', sans-serif",
     position: "relative",
     overflow: "hidden",
   },
@@ -421,12 +464,12 @@ const loginS = {
     pointerEvents: "none",
   },
   card: {
-    width: 360,
-    background: "#ffffff",
+    width: 370,
+    background: "var(--surf, #081a3d)",
     borderRadius: 24,
-    padding: "32px 28px 28px",
-    boxShadow: "0 8px 32px rgba(244,63,94,0.1), 0 2px 8px rgba(0,0,0,0.05)",
-    border: "1px solid rgba(244,63,94,0.1)",
+    padding: "34px 30px 28px",
+    boxShadow: "0 8px 32px rgba(44,198,255,0.18), 0 2px 8px rgba(0,0,0,0.24)",
+    border: "1px solid var(--border, rgba(70,130,220,0.28))",
     position: "relative",
     zIndex: 1,
   },
@@ -435,10 +478,11 @@ const loginS = {
     top: 20, right: 20,
     width: 34, height: 34,
     borderRadius: "50%",
-    background: "#fff0f2",
-    display: "flex", alignItems: "center", justifyContent: "center",
+    background: "var(--surf2, #0b224e)",
+    display: "grid", placeItems: "center",
     cursor: "pointer",
-    border: "1px solid rgba(244,63,94,0.15)",
+    border: "1px solid var(--border2, rgba(44,198,255,0.55))",
+    outline: "none",
   },
   titleBlock: {
     textAlign: "center",
@@ -448,33 +492,33 @@ const loginS = {
   title: {
     fontSize: 26,
     fontWeight: 800,
-    color: "#1f1215",
+    color: "var(--text, #e9f4ff)",
     letterSpacing: "-0.02em",
     marginBottom: 6,
   },
   subtitle: {
     fontSize: 13,
-    color: "#b08a92",
+    color: "var(--muted, #8ea9d3)",
   },
   roleWrap: {
     position: "relative",
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
-    background: "#fce8ec",
+    background: "var(--surf2, #0b224e)",
     borderRadius: 12,
     padding: 4,
     marginBottom: 20,
-    height: 44,
+    height: 46,
   },
   roleSlider: {
     position: "absolute",
     top: 4,
     width: "calc(50% - 6px)",
     height: "calc(100% - 8px)",
-    background: "linear-gradient(135deg, #f43f5e, #fb923c)",
+    background: "linear-gradient(135deg, var(--cyan, #2cc6ff), var(--cyanD, #1d8be8))",
     borderRadius: 9,
     transition: "left 0.28s cubic-bezier(0.4,0,0.2,1)",
-    boxShadow: "0 2px 10px rgba(244,63,94,0.4)",
+    boxShadow: "0 2px 10px rgba(44,198,255,0.35)",
   },
   roleBtn: {
     position: "relative",
@@ -483,7 +527,7 @@ const loginS = {
     border: "none",
     fontSize: 14,
     fontWeight: 600,
-    fontFamily: "'Inter', sans-serif",
+    fontFamily: "'Space Grotesk', sans-serif",
     cursor: "pointer",
     borderRadius: 9,
     transition: "color 0.25s ease",
@@ -494,21 +538,21 @@ const loginS = {
     alignItems: "center",
     gap: 10,
     padding: "0 14px",
-    border: `1.5px solid ${isErr ? "#fca5a5" : focused ? "#f43f5e" : "#f2dde0"}`,
+    border: `1.5px solid ${isErr ? "var(--red, #ff6b9d)" : focused ? "var(--cyan, #2cc6ff)" : "var(--border, rgba(70,130,220,0.28))"}`,
     borderRadius: 12,
-    background: isErr ? "#fff5f5" : focused ? "#fffafa" : "#fdf8f8",
+    background: isErr ? "rgba(255,107,157,0.08)" : focused ? "var(--surf3, #122d63)" : "var(--surf2, #0b224e)",
     marginBottom: 12,
     height: 50,
     transition: "border-color 0.2s, box-shadow 0.2s, background 0.2s",
-    boxShadow: focused && !isErr ? "0 0 0 3px rgba(244,63,94,0.1)" : isErr ? "0 0 0 3px rgba(248,113,113,0.1)" : "none",
+    boxShadow: focused && !isErr ? "0 0 0 3px rgba(44,198,255,0.14)" : isErr ? "0 0 0 3px rgba(255,107,157,0.14)" : "none",
   }),
   input: {
     flex: 1,
     border: "none",
     background: "transparent",
     fontSize: 14,
-    color: "#1f1215",
-    fontFamily: "'Inter', sans-serif",
+    color: "var(--text, #e9f4ff)",
+    fontFamily: "'Space Grotesk', sans-serif",
   },
   eyeBtn: {
     cursor: "pointer",
@@ -521,8 +565,8 @@ const loginS = {
     alignItems: "flex-start",
     gap: 10,
     padding: "12px 14px",
-    background: "#fff0f2",
-    border: "1px solid #fecdd3",
+    background: "rgba(255,107,157,0.1)",
+    border: "1px solid rgba(255,107,157,0.3)",
     borderRadius: 10,
     marginBottom: 16,
     animation: "errorSlide 0.3s ease",
@@ -530,25 +574,25 @@ const loginS = {
   errorTitle: {
     fontSize: 13,
     fontWeight: 600,
-    color: "#f43f5e",
+    color: "var(--red, #ff6b9d)",
     marginBottom: 2,
   },
   errorMsg: {
     fontSize: 12,
-    color: "#fb7185",
+    color: "var(--red, #ff6b9d)",
   },
   loginBtn: {
     width: "100%",
     height: 50,
     borderRadius: 12,
     border: "none",
-    background: "linear-gradient(135deg, #f43f5e 0%, #fb7185 50%, #fb923c 100%)",
+    background: "linear-gradient(135deg, var(--cyan, #2cc6ff) 0%, var(--cyanD, #1d8be8) 55%, var(--violet, #8a7aff) 100%)",
     color: "#fff",
     fontSize: 16,
     fontWeight: 700,
-    fontFamily: "'Inter', sans-serif",
+    fontFamily: "'Space Grotesk', sans-serif",
     cursor: "pointer",
-    boxShadow: "0 4px 18px rgba(244,63,94,0.4)",
+    boxShadow: "0 4px 18px rgba(44,198,255,0.28)",
     transition: "all 0.25s ease",
     marginBottom: 20,
   },
@@ -570,10 +614,10 @@ const loginS = {
   signupText: {
     textAlign: "center",
     fontSize: 13,
-    color: "#b08a92",
+    color: "var(--muted, #8ea9d3)",
   },
   signupLink: {
-    color: "#f43f5e",
+    color: "var(--cyan, #2cc6ff)",
     fontWeight: 600,
     cursor: "pointer",
   },
@@ -584,7 +628,7 @@ const Topbar = ({role,theme,onToggleTheme}) => {
   return (
     <div style={{
       display:"flex",alignItems:"center",padding:"0 28px",height:56,
-      borderBottom:`1px solid ${T.border}`,background:"rgba(6,18,45,.92)",
+      borderBottom:`1px solid ${T.border}`,background:T.surf,
       backdropFilter:"blur(20px)",position:"sticky",top:0,zIndex:100,gap:20,
     }}>
       <span style={{fontSize:12,fontWeight:600,color:T.muted,letterSpacing:".06em"}}>telecom-intelligence-platform</span>
@@ -598,8 +642,8 @@ const Topbar = ({role,theme,onToggleTheme}) => {
             width:34,
             height:32,
             borderRadius:8,
-            border:`1px solid ${T.border2}`,
-            background:T.surf,
+            border: theme === "dark" ? "2px solid #202b44" : `1px solid ${T.border2}`,
+            background: theme === "dark" ? "#ffffff" : T.surf,
             color:T.cyan,
             fontFamily:"'Space Grotesk',sans-serif",
             fontSize:16,
@@ -609,9 +653,9 @@ const Topbar = ({role,theme,onToggleTheme}) => {
             transition:"all .2s",
           }}
           onMouseEnter={e=>{e.currentTarget.style.borderColor=T.cyan;}}
-          onMouseLeave={e=>{e.currentTarget.style.borderColor=T.border2;}}
+          onMouseLeave={e=>{e.currentTarget.style.borderColor=theme === "dark" ? "#202b44" : T.border2;}}
         >
-          <span aria-hidden="true">{theme === "dark" ? "☀" : "🌙"}</span>
+          <ThemeSparkIcon size={14}/>
         </button>
         <div style={{display:"flex",alignItems:"center",gap:8,padding:"6px 12px 6px 6px",borderRadius:24,background:T.surf,border:`1px solid ${T.border}`}}>
           <div style={{width:28,height:28,borderRadius:"50%",background:`linear-gradient(135deg,${T.cyan},${T.violet})`,display:"grid",placeItems:"center",fontSize:11,fontWeight:700,color:"#05080f"}}>
@@ -638,30 +682,33 @@ const NAV = [
 const Sidebar = ({page,setPage,role,onLogout}) => {
   const sections = [...new Set(NAV.map(n=>n.section))];
   return (
-    <aside style={{borderRight:`1px solid ${T.border}`,padding:"20px 0",background:"rgba(8,24,58,.62)",display:"flex",flexDirection:"column"}}>
-      {sections.map(sec=>(
-        <div key={sec} style={{padding:"0 16px",marginBottom:24}}>
-          <div style={{fontSize:10,fontWeight:700,letterSpacing:".12em",color:T.muted,textTransform:"uppercase",padding:"0 8px",marginBottom:8}}>{sec}</div>
-          {NAV.filter(n=>n.section===sec&&(!n.adminOnly||role==="admin")).map(n=>(
-            <div key={n.id} onClick={()=>setPage(n.id)} style={{
-              display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:10,
-              cursor:"pointer",fontSize:13,fontWeight:600,marginBottom:2,
-              color:page===n.id?T.cyan:T.muted,
-              background:page===n.id?"rgba(44,198,255,.14)":"transparent",
-              border:page===n.id?`1px solid rgba(44,198,255,.35)`:"1px solid transparent",
-              transition:"all .18s",
-            }}
-            onMouseEnter={e=>{if(page!==n.id){e.currentTarget.style.background="rgba(44,198,255,.1)";e.currentTarget.style.color=T.cyan}}}
-            onMouseLeave={e=>{if(page!==n.id){e.currentTarget.style.background="transparent";e.currentTarget.style.color=T.muted}}}
-            >
-              <span style={{fontSize:14}}>{n.icon}</span>
-              {n.label}
-              {n.badge&&<span style={{marginLeft:"auto",padding:"2px 7px",borderRadius:8,background:"rgba(44,198,255,.12)",color:T.cyan,fontSize:10,fontWeight:700,fontFamily:"'JetBrains Mono',monospace"}}>{n.badge}</span>}
-            </div>
-          ))}
-        </div>
-      ))}
-      <div style={{marginTop:"auto",padding:16,display:"flex",flexDirection:"column",gap:10}}>
+    <aside style={{borderRight:`1px solid ${T.border}`,padding:"20px 0 0",background:T.surf2,display:"flex",flexDirection:"column",minHeight:0}}>
+      <div style={{flex:1,overflowY:"auto",paddingBottom:12}}>
+        {sections.map(sec=>(
+          <div key={sec} style={{padding:"0 16px",marginBottom:24}}>
+            <div style={{fontSize:10,fontWeight:700,letterSpacing:".12em",color:T.muted,textTransform:"uppercase",padding:"0 8px",marginBottom:8}}>{sec}</div>
+            {NAV.filter(n=>n.section===sec&&(!n.adminOnly||role==="admin")).map(n=>(
+              <div key={n.id} onClick={()=>setPage(n.id)} style={{
+                display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:10,
+                cursor:"pointer",fontSize:13,fontWeight:600,marginBottom:2,
+                color:page===n.id?T.cyan:T.muted,
+                background:page===n.id?"rgba(44,198,255,.14)":"transparent",
+                border:page===n.id?`1px solid rgba(44,198,255,.35)`:"1px solid transparent",
+                transition:"all .18s",
+              }}
+              onMouseEnter={e=>{if(page!==n.id){e.currentTarget.style.background="rgba(44,198,255,.1)";e.currentTarget.style.color=T.cyan}}}
+              onMouseLeave={e=>{if(page!==n.id){e.currentTarget.style.background="transparent";e.currentTarget.style.color=T.muted}}}
+              >
+                <span style={{fontSize:14}}>{n.icon}</span>
+                {n.label}
+                {n.badge&&<span style={{marginLeft:"auto",padding:"2px 7px",borderRadius:8,background:"rgba(44,198,255,.12)",color:T.cyan,fontSize:10,fontWeight:700,fontFamily:"'JetBrains Mono',monospace"}}>{n.badge}</span>}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+
+      <div style={{padding:16,display:"flex",flexDirection:"column",gap:10,borderTop:`1px solid ${T.border}`}}>
         <button
           onClick={onLogout}
           style={{
@@ -791,6 +838,7 @@ const Dashboard = ({setPage,showToast,cdrData}) => {
     border:`1px solid ${T.border}`,
     borderRadius:12,
   };
+  const filterUiFont = "'Space Grotesk', sans-serif";
 
   return (
     <div style={{animation:"fadeUp .35s ease both"}}>
@@ -800,28 +848,46 @@ const Dashboard = ({setPage,showToast,cdrData}) => {
       </div>
 
       <div style={{...panel,padding:"10px 12px",marginBottom:10}}>
-        <div style={{display:"grid",gridTemplateColumns:"1.2fr 180px 180px auto 1fr",gap:8,alignItems:"center"}}>
-          <div>
-            <div style={{fontSize:9,color:T.muted,marginBottom:5,fontWeight:700,letterSpacing:".08em"}}>City</div>
-            <select value={cityFilter} onChange={(e)=>setCityFilter(e.target.value)} style={{...cdrRowsSelectStyle,width:"100%",height:28}}>
-              {cityOptions.map(c => <option key={c} value={c}>{c === "all" ? "All Cities" : c}</option>)}
-            </select>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:10,marginBottom:6}}>
+          <div style={{display:"grid",gridTemplateColumns:"2.1fr 1.2fr 1.2fr auto",gap:8,alignItems:"end",flex:1}}>
+            <div>
+              <div style={{fontSize:10,color:T.muted,marginBottom:5,fontWeight:700,letterSpacing:".06em",fontFamily:filterUiFont}}>City</div>
+              <select
+                value={cityFilter}
+                onChange={(e)=>setCityFilter(e.target.value)}
+                style={{width:"100%",height:40,padding:"0 12px",borderRadius:10,border:`1px solid ${T.border2}`,background:T.surf2,color:T.cyan,fontSize:14,fontWeight:700,fontFamily:filterUiFont}}
+              >
+                {cityOptions.map(c => <option key={c} value={c}>{c === "all" ? "All Cities" : c}</option>)}
+              </select>
+            </div>
+            <div>
+              <div style={{fontSize:10,color:T.muted,marginBottom:5,fontWeight:700,letterSpacing:".06em",fontFamily:filterUiFont}}>From</div>
+              <input
+                type="date"
+                value={fromDate}
+                onChange={(e)=>setFromDate(e.target.value)}
+                style={{height:40,padding:"0 12px",borderRadius:10,border:`1px solid ${T.border}`,background:T.surf2,color:T.text,fontSize:14,fontWeight:600,fontFamily:filterUiFont}}
+              />
+            </div>
+            <div>
+              <div style={{fontSize:10,color:T.muted,marginBottom:5,fontWeight:700,letterSpacing:".06em",fontFamily:filterUiFont}}>To</div>
+              <input
+                type="date"
+                value={toDate}
+                onChange={(e)=>setToDate(e.target.value)}
+                style={{height:40,padding:"0 12px",borderRadius:10,border:`1px solid ${T.border}`,background:T.surf2,color:T.text,fontSize:14,fontWeight:600,fontFamily:filterUiFont}}
+              />
+            </div>
+            <button
+              onClick={() => { setCityFilter("all"); setFromDate(""); setToDate(""); }}
+              style={{height:40,padding:"0 14px",borderRadius:10,border:`1px solid ${T.border2}`,background:"rgba(44,198,255,.08)",color:T.cyan,fontSize:13,fontWeight:700,whiteSpace:"nowrap",fontFamily:filterUiFont}}
+            >
+              Reset Filters
+            </button>
           </div>
-          <div>
-            <div style={{fontSize:9,color:T.muted,marginBottom:5,fontWeight:700,letterSpacing:".08em"}}>From</div>
-            <input type="date" value={fromDate} onChange={(e)=>setFromDate(e.target.value)} />
+          <div style={{fontSize:10,color:T.muted,fontFamily:filterUiFont,paddingTop:2,whiteSpace:"nowrap"}}>
+            {totalCalls} records in range
           </div>
-          <div>
-            <div style={{fontSize:9,color:T.muted,marginBottom:5,fontWeight:700,letterSpacing:".08em"}}>To</div>
-            <input type="date" value={toDate} onChange={(e)=>setToDate(e.target.value)} />
-          </div>
-          <button
-            onClick={() => { setCityFilter("all"); setFromDate(""); setToDate(""); }}
-            style={{height:28,padding:"0 12px",borderRadius:8,border:`1px solid ${T.border2}`,background:T.surf2,color:T.cyan,fontSize:11,fontWeight:700}}
-          >
-            Reset Filters
-          </button>
-          <div style={{textAlign:"right",fontSize:10,color:T.muted,fontFamily:"'JetBrains Mono',monospace"}}>{totalCalls} records in range</div>
         </div>
       </div>
 
@@ -898,7 +964,7 @@ const Dashboard = ({setPage,showToast,cdrData}) => {
                 <div style={{fontSize:24,fontWeight:800,lineHeight:1,marginBottom:6}}>{x.value}</div>
                 <div style={{fontSize:9,color:T.muted,fontFamily:"'JetBrains Mono',monospace"}}>{x.sub}</div>
               </div>
-              <div style={{width:20,height:20,borderRadius:6,background:`${x.color}22`,color:x.color,fontSize:12,display:"grid",placeItems:"center"}}>{x.icon}</div>
+              <div style={{width:20,height:20,borderRadius:6,background:"rgba(44,198,255,.14)",color:x.color,fontSize:12,display:"grid",placeItems:"center"}}>{x.icon}</div>
             </div>
           ))}
         </div>
@@ -1411,6 +1477,10 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    const root = document.documentElement;
+    const vars = THEME_VARS[theme] || THEME_VARS.dark;
+    Object.entries(vars).forEach(([k, v]) => root.style.setProperty(k, v));
+    root.style.colorScheme = theme;
     localStorage.setItem("tip-theme", theme);
   }, [theme]);
 
@@ -1436,7 +1506,7 @@ export default function App() {
   if(!authed) return (
     <>
       <style>{GLOBAL_CSS}</style>
-      <LoginPage onLogin={handleLogin}/>
+      <LoginPage onLogin={handleLogin} theme={theme} onToggleTheme={toggleTheme}/>
       <Toast {...toast}/>
     </>
   );
@@ -1455,7 +1525,7 @@ export default function App() {
       <div style={{position:"fixed",width:700,height:700,borderRadius:"50%",filter:"blur(140px)",background:"rgba(44,198,255,.04)",top:-200,left:-200,animation:"blobdrift 14s ease-in-out infinite alternate",pointerEvents:"none",zIndex:0}}/>
       <div style={{position:"fixed",width:600,height:600,borderRadius:"50%",filter:"blur(140px)",background:"rgba(139,92,246,.05)",bottom:-150,right:-150,animation:"blobdrift 18s ease-in-out infinite alternate-reverse",pointerEvents:"none",zIndex:0}}/>
 
-      <div style={{display:"flex",flexDirection:"column",minHeight:"100vh",position:"relative",zIndex:1,filter:theme==="light"?"invert(1) hue-rotate(180deg)":"none",transition:"filter .22s ease"}}>
+      <div style={{display:"flex",flexDirection:"column",minHeight:"100vh",position:"relative",zIndex:1}}>
         <Topbar role={role} theme={theme} onToggleTheme={toggleTheme}/>
         <div style={{display:"grid",gridTemplateColumns:"220px 1fr",flex:1,minHeight:"calc(100vh - 56px)"}}>
           <Sidebar page={page} setPage={setPage} role={role} onLogout={()=>{setAuthed(false);setPage("dashboard")}}/>
