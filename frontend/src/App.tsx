@@ -682,7 +682,7 @@ const NAV = [
 const Sidebar = ({page,setPage,role,onLogout}) => {
   const sections = [...new Set(NAV.map(n=>n.section))];
   return (
-    <aside style={{borderRight:`1px solid ${T.border}`,padding:"20px 0 0",background:T.surf2,display:"flex",flexDirection:"column",minHeight:0}}>
+    <aside style={{borderRight:`1px solid ${T.border}`,padding:"20px 0 0",background:T.surf2,display:"flex",flexDirection:"column",minHeight:0,height:"100%",overflow:"hidden"}}>
       <div style={{flex:1,overflowY:"auto",paddingBottom:12}}>
         {sections.map(sec=>(
           <div key={sec} style={{padding:"0 16px",marginBottom:24}}>
@@ -1525,11 +1525,11 @@ export default function App() {
       <div style={{position:"fixed",width:700,height:700,borderRadius:"50%",filter:"blur(140px)",background:"rgba(44,198,255,.04)",top:-200,left:-200,animation:"blobdrift 14s ease-in-out infinite alternate",pointerEvents:"none",zIndex:0}}/>
       <div style={{position:"fixed",width:600,height:600,borderRadius:"50%",filter:"blur(140px)",background:"rgba(139,92,246,.05)",bottom:-150,right:-150,animation:"blobdrift 18s ease-in-out infinite alternate-reverse",pointerEvents:"none",zIndex:0}}/>
 
-      <div style={{display:"flex",flexDirection:"column",minHeight:"100vh",position:"relative",zIndex:1}}>
+      <div style={{display:"flex",flexDirection:"column",height:"100vh",overflow:"hidden",position:"relative",zIndex:1}}>
         <Topbar role={role} theme={theme} onToggleTheme={toggleTheme}/>
-        <div style={{display:"grid",gridTemplateColumns:"220px 1fr",flex:1,minHeight:"calc(100vh - 56px)"}}>
+        <div style={{display:"grid",gridTemplateColumns:"220px 1fr",flex:1,height:"calc(100vh - 56px)",overflow:"hidden"}}>
           <Sidebar page={page} setPage={setPage} role={role} onLogout={()=>{setAuthed(false);setPage("dashboard")}}/>
-          <main style={{padding:28,overflowY:"auto",background:"transparent"}}>
+          <main style={{padding:28,overflowY:"auto",minHeight:0,background:"transparent"}}>
             {pages[page]}
           </main>
         </div>
