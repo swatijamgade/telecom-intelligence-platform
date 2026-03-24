@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: telecom_db
+      POSTGRES_USER: telecom
+      POSTGRES_PASSWORD: telecom
+    ports:
+      - "5432:5432"
+    volumes:
+      - telecom_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U telecom -d telecom_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    env_file:
+      - ./backend/.env.example
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./backend/app:/app/app
+
+volumes:
+  telecom_db_data:

@@ -1,1 +1,0 @@
-# telecom-intelligence-platform

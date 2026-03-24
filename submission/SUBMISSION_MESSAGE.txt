@@ -1,0 +1,34 @@
+Hello,
+
+Please find my Week 3 submission for Telecom Intelligence Platform:
+
+1) Backend code repository:
+https://github.com/swatijamgade/telecom-intelligence-platform
+
+2) Frontend integrated application:
+http://localhost:5173
+
+3) API endpoint:
+http://localhost:5000/api/v1
+
+4) Authentication flow demonstration:
+Included under:
+submission/evidence/
+- auth-signup-response.json
+- auth-login-response.json
+- auth-me-response.json
+- auth-demo-meta.txt
+
+Additional requested points are also covered:
+- Searching + pagination action evidence:
+  - search-cdr-page1.json
+  - search-cdr-page2.json
+  - search-pagination-meta.txt
+- bcrypt password hash usage evidence:
+  - bcrypt-proof.json
+
+Mock CDR dataset reference:
+https://drive.google.com/file/d/1vDzCqWsUSMSPB0OoWHo1M693fl9YWjHG/view?usp=drive_link
+
+Detailed checklist:
+submission/FINAL_SUBMISSION.md

@@ -1,0 +1,15 @@
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+body {
+  margin: 0;
+  font-family: "Syne", system-ui, sans-serif;
+}

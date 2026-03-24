@@ -1,0 +1,3 @@
+email=demo.student.20260321-184046@example.com
+generated_at=2026-03-21T18:40:47+00:00
+login_token_length=188
