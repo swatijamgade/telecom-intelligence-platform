@@ -851,8 +851,6 @@ const Dashboard = ({setPage,showToast,cdrData}) => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [logsPage, setLogsPage] = useState(1);
 
-  const nameSeeds = ["Alice","Maya","Noah","Liam","Ava","Ethan","Zoya","Aiden","Sofia","Mason"];
-  const surnameSeeds = ["Johnson","Walker","Singh","Khan","Ali","Scott","Brown","Smith","Clark","Taylor"];
   const parsed = useMemo(() => (
     cdrData.map((r, i) => {
       const dt = new Date(String(r.datetime || "").replace(" ", "T"));
@@ -860,8 +858,7 @@ const Dashboard = ({setPage,showToast,cdrData}) => {
       const day = `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
       const syntheticCost = Number(((r.duration / 60) * 0.92 + ((i % 6) + 1) * 0.19).toFixed(2));
       const syntheticSuccess = i % 11 !== 0;
-      const fallbackCallerName = `${nameSeeds[i % nameSeeds.length]} ${surnameSeeds[(i * 3) % surnameSeeds.length]}`;
-      const callerName = String(r.callerName || "").trim() || fallbackCallerName;
+      const callerName = String(r.callerName || "").trim() || String(r.caller || "").trim() || "Unknown";
       const numericCost = Number(r.callCost);
       const hasSheetCost = r.callCost !== null && r.callCost !== undefined && Number.isFinite(numericCost);
       const cost = hasSheetCost ? Number(numericCost.toFixed(2)) : syntheticCost;
@@ -1310,7 +1307,7 @@ const cdrPgBarStyle = {
   gap:8,
   padding:"7px 10px",
   borderRadius:8,
-  background:"rgba(5,12,28,.95)",
+  background:T.surf2,
   border:`1px solid ${T.border}`,
 };
 const cdrPgLabelStyle = {
