@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { getApiErrorMessage } from "../api/client";
 import { useAuth } from "../context/AuthContext";
-import { AuthPageBackground, EyeIcon, MailIcon, PinevoxLogo, useAuthPageStyles } from "./authUi";
+import { AuthPageBackground, EyeIcon, LockIcon, MailIcon, SparkIcon, useAuthPageStyles } from "./authUi";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -43,47 +43,39 @@ export default function LoginPage() {
     <>
       <AuthPageBackground />
 
-      <div className="pv-card">
-        <div className="pv-logo">
-          <PinevoxLogo />
-          <div>
-            <span className="pv-logo-name">PINEVOX</span>
-            <span className="pv-logo-tag">Telecom Intelligence Platform</span>
-          </div>
+      <div className="pv-card pv-login-card">
+        <div className="pv-login-badge" aria-hidden="true">
+          <SparkIcon />
         </div>
 
-        <h1 className="pv-heading">Welcome back</h1>
-        <p className="pv-sub">Authenticate to access the dashboard.</p>
+        <h1 className="pv-login-heading">Welcome Back</h1>
 
-        <form onSubmit={onSubmit}>
-          <div className="pv-field">
-            <label className="pv-label" htmlFor="pv-email">
-              Email address
-            </label>
-            <div className="pv-input-wrap">
+        <form className="pv-login-form" onSubmit={onSubmit}>
+          <div className="pv-login-field">
+            <div className="pv-login-input-shell">
+              <span className="pv-login-lead" aria-hidden="true">
+                <MailIcon />
+              </span>
               <input
-                className="pv-input"
+                className="pv-login-input"
                 id="pv-email"
                 type="email"
-                placeholder="you@company.com"
+                placeholder="admin@example.com"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 autoComplete="email"
                 required
               />
-              <span className="pv-input-icon">
-                <MailIcon />
-              </span>
             </div>
           </div>
 
-          <div className="pv-field">
-            <label className="pv-label" htmlFor="pv-password">
-              Password
-            </label>
-            <div className="pv-input-wrap">
+          <div className="pv-login-field">
+            <div className="pv-login-input-shell">
+              <span className="pv-login-lead" aria-hidden="true">
+                <LockIcon />
+              </span>
               <input
-                className="pv-input"
+                className="pv-login-input pv-login-input-password"
                 id="pv-password"
                 type={showPw ? "text" : "password"}
                 placeholder=".........."
@@ -94,7 +86,7 @@ export default function LoginPage() {
                 required
               />
               <button
-                className="pv-toggle"
+                className="pv-login-toggle"
                 onClick={() => setShowPw((value) => !value)}
                 type="button"
                 aria-label="Toggle password"
@@ -102,35 +94,22 @@ export default function LoginPage() {
                 <EyeIcon open={showPw} />
               </button>
             </div>
-            <div className="pv-meta">
-              <a
-                href="#"
-                className="pv-link"
-                onClick={(event) => {
-                  event.preventDefault();
-                }}
-              >
-                Forgot password?
-              </a>
-            </div>
           </div>
 
-          <div className="pv-divider" />
-
-          <button className="pv-btn" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? <span className="pv-spinner" /> : "Authenticate"}
+          <button className="pv-login-btn" type="submit" disabled={isSubmitting}>
+            {isSubmitting ? <span className="pv-spinner" /> : "Login"}
           </button>
         </form>
 
         {error && (
-          <div className="pv-status">
+          <div className="pv-status pv-login-status">
             <div className="pv-status-dot" />
             {error}
           </div>
         )}
 
-        <div className="pv-footer">
-          New user? <Link to="/signup">Create an account</Link>
+        <div className="pv-login-footer">
+          Don&apos;t have an account? <Link to="/signup">Sign Up</Link>
         </div>
       </div>
     </>

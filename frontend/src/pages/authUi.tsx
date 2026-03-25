@@ -317,6 +317,186 @@ const AUTH_STYLES = `
     opacity: 0.75;
   }
 
+  .pv-login-card {
+    width: min(100%, 392px);
+    padding: clamp(24px, 5vw, 32px);
+    border-radius: 24px;
+    background:
+      linear-gradient(180deg, rgba(8, 34, 88, 0.95) 0%, rgba(3, 24, 70, 0.98) 100%);
+    border: 1px solid rgba(72, 150, 255, 0.34);
+    box-shadow:
+      inset 0 1px 0 rgba(187, 222, 255, 0.14),
+      0 22px 66px rgba(1, 11, 43, 0.82);
+  }
+
+  .pv-login-badge {
+    margin-left: auto;
+    width: 34px;
+    height: 34px;
+    border-radius: 999px;
+    border: 1px solid rgba(160, 214, 255, 0.56);
+    background: rgba(255, 255, 255, 0.93);
+    color: #4ea9ef;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 6px 20px rgba(8, 16, 40, 0.32);
+  }
+
+  .pv-login-heading {
+    margin: 16px 0 22px;
+    text-align: center;
+    color: #f8fbff;
+    font-size: clamp(34px, 7vw, 48px);
+    line-height: 1.03;
+    letter-spacing: -0.03em;
+    position: relative;
+    text-wrap: balance;
+  }
+
+  .pv-login-heading::after {
+    content: "";
+    position: absolute;
+    left: 9%;
+    right: 9%;
+    top: 55%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(214, 235, 255, 0.7), transparent);
+    pointer-events: none;
+  }
+
+  .pv-login-form {
+    display: grid;
+    gap: 12px;
+  }
+
+  .pv-login-field {
+    width: 100%;
+  }
+
+  .pv-login-input-shell {
+    width: 100%;
+    min-height: 52px;
+    border-radius: 13px;
+    border: 1px solid rgba(86, 155, 255, 0.36);
+    background: linear-gradient(180deg, rgba(8, 33, 81, 0.7) 0%, rgba(4, 28, 72, 0.76) 100%);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 7px 10px 7px 13px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .pv-login-input-shell:focus-within {
+    border-color: rgba(90, 192, 255, 0.95);
+    box-shadow: 0 0 0 3px rgba(41, 180, 246, 0.18);
+  }
+
+  .pv-login-lead {
+    width: 18px;
+    height: 18px;
+    color: #9cc8f7;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .pv-login-input {
+    width: 100%;
+    border: 0;
+    border-radius: 8px;
+    background: rgba(124, 170, 238, 0.2);
+    color: #f2f7ff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.2;
+    padding: 10px 12px;
+    outline: none;
+    -webkit-appearance: none;
+  }
+
+  .pv-login-input::placeholder {
+    color: rgba(198, 221, 246, 0.88);
+    font-weight: 600;
+  }
+
+  .pv-login-input-password {
+    padding-right: 6px;
+  }
+
+  .pv-login-toggle {
+    width: 22px;
+    height: 22px;
+    border: 0;
+    background: transparent;
+    color: #9cc8f7;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: color 0.2s;
+  }
+
+  .pv-login-toggle:hover {
+    color: #e2f1ff;
+  }
+
+  .pv-login-btn {
+    width: 100%;
+    margin-top: 4px;
+    min-height: 52px;
+    border: 0;
+    border-radius: 13px;
+    padding: 12px;
+    background: linear-gradient(90deg, #35bdf6 0%, #5f82f4 100%);
+    color: #f4fbff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 30px;
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
+    box-shadow: 0 16px 28px rgba(49, 139, 234, 0.37);
+  }
+
+  .pv-login-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 20px 34px rgba(49, 139, 234, 0.45);
+  }
+
+  .pv-login-btn:disabled {
+    opacity: 0.72;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .pv-login-status {
+    margin-top: 14px;
+  }
+
+  .pv-login-footer {
+    margin-top: 18px;
+    text-align: center;
+    color: #a9cbf4;
+    font-size: 13px;
+    line-height: 1.4;
+    font-weight: 500;
+  }
+
+  .pv-login-footer a {
+    color: #0ac0ff;
+    text-decoration: none;
+    font-weight: 700;
+  }
+
+  .pv-login-footer a:hover {
+    opacity: 0.8;
+  }
+
   @media (max-width: 640px) {
     #root {
       padding: 16px 12px;
@@ -347,6 +527,15 @@ const AUTH_STYLES = `
 
     .pv-btn {
       font-size: 14px;
+    }
+
+    .pv-login-heading {
+      font-size: clamp(30px, 11vw, 38px);
+    }
+
+    .pv-login-btn {
+      min-height: 50px;
+      font-size: 26px;
     }
   }
 
@@ -405,6 +594,31 @@ export function MailIcon() {
   return (
     <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.6">
       <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+    </svg>
+  );
+}
+
+export function LockIcon() {
+  return (
+    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.8">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M7 11V8a5 5 0 0110 0v3" />
+      <rect x="4" y="11" width="16" height="10" rx="2" />
+    </svg>
+  );
+}
+
+export function SparkIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path strokeLinecap="round" d="M12 4v3" />
+      <path strokeLinecap="round" d="M12 17v3" />
+      <path strokeLinecap="round" d="M4 12h3" />
+      <path strokeLinecap="round" d="M17 12h3" />
+      <path strokeLinecap="round" d="m6.5 6.5 2.1 2.1" />
+      <path strokeLinecap="round" d="m15.4 15.4 2.1 2.1" />
+      <path strokeLinecap="round" d="m17.5 6.5-2.1 2.1" />
+      <path strokeLinecap="round" d="m8.6 15.4-2.1 2.1" />
+      <circle cx="12" cy="12" r="3.2" />
     </svg>
   );
 }
