@@ -153,6 +153,20 @@ const parseDur = raw => {
   const n = Number(v.replace(/[^\d.]/g, ""));
   return Number.isFinite(n) ? Math.round(n) : 0;
 };
+const parseMoney = raw => {
+  const v = String(raw || "").trim();
+  if (!v) return null;
+  const n = Number(v.replace(/[^\d.-]/g, ""));
+  if (!Number.isFinite(n)) return null;
+  return Number(n.toFixed(2));
+};
+const parseBool = raw => {
+  const v = String(raw || "").trim().toLowerCase();
+  if (!v) return null;
+  if (["true", "1", "yes", "y", "success", "successful", "completed", "ok"].includes(v)) return true;
+  if (["false", "0", "no", "n", "failed", "failure", "error"].includes(v)) return false;
+  return null;
+};
 const normType = raw => {
   const v = String(raw || "").toLowerCase();
   if (v === "true" || v === "1") return "Incoming";
@@ -172,20 +186,26 @@ const mapSheetRows = rows => (
   rows.map((row, i) => {
     const caller = getCol(row, ["caller", "caller_number", "callernumber", "caller_no", "calling_number", "from", "source"]);
     const receiver = getCol(row, ["receiver", "receiver_number", "receivernumber", "receiver_no", "called_number", "to", "destination"]);
+    const callerName = getCol(row, ["caller_name", "callername", "name", "customer_name"]);
     const city = getCol(row, ["city", "caller_city", "location_city"]) || CITIES[rnd(0, CITIES.length - 1)];
     const id = getCol(row, ["id", "cdr_id", "record_id"]) || i + 1;
     const type = normType(getCol(row, ["type", "call_type", "call_direction", "calldirection", "direction"]));
     const duration = parseDur(getCol(row, ["duration", "duration_sec", "duration_seconds", "seconds", "call_duration", "callduration"]));
     const datetime = normTime(getCol(row, ["datetime", "date_time", "timestamp", "date", "call_date", "time", "call_start_time", "callstarttime"]));
+    const callCost = parseMoney(getCol(row, ["cost", "call_cost", "callcost", "amount", "charge"]));
+    const callStatus = parseBool(getCol(row, ["call_status", "callstatus", "status", "success", "is_success"]));
 
     return {
       id,
       caller: caller || fakeNum(),
       receiver: receiver || fakeNum(),
+      callerName: String(callerName || "").trim(),
       type,
       duration,
       city,
       datetime,
+      callCost,
+      callStatus,
     };
   }).filter(r => r.caller || r.receiver)
 );
@@ -840,8 +860,13 @@ const Dashboard = ({setPage,showToast,cdrData}) => {
       const day = `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}`;
       const syntheticCost = Number(((r.duration / 60) * 0.92 + ((i % 6) + 1) * 0.19).toFixed(2));
       const syntheticSuccess = i % 11 !== 0;
-      const callerName = `${nameSeeds[i % nameSeeds.length]} ${surnameSeeds[(i * 3) % surnameSeeds.length]}`;
-      return { ...r, _date: date, _day: day, _cost: syntheticCost, _success: syntheticSuccess, _callerName: callerName };
+      const fallbackCallerName = `${nameSeeds[i % nameSeeds.length]} ${surnameSeeds[(i * 3) % surnameSeeds.length]}`;
+      const callerName = String(r.callerName || "").trim() || fallbackCallerName;
+      const numericCost = Number(r.callCost);
+      const hasSheetCost = r.callCost !== null && r.callCost !== undefined && Number.isFinite(numericCost);
+      const cost = hasSheetCost ? Number(numericCost.toFixed(2)) : syntheticCost;
+      const success = typeof r.callStatus === "boolean" ? r.callStatus : syntheticSuccess;
+      return { ...r, _date: date, _day: day, _cost: cost, _success: success, _callerName: callerName };
     })
   ), [cdrData]);
 
