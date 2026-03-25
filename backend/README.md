@@ -42,11 +42,23 @@ alembic upgrade head
 When dashboard metrics show zero, populate demo CDR rows:
 
 ```bash
-docker compose exec backend python -m app.db.seed --records 1200
+docker compose exec backend python -m app.db.seed
 ```
 
 To reseed from scratch:
 
 ```bash
-docker compose exec backend python -m app.db.seed --records 1200 --force
+docker compose exec backend python -m app.db.seed --force
+```
+
+Seed random rows instead of CSV:
+
+```bash
+docker compose exec backend python -m app.db.seed --random --records 1200 --force
+```
+
+Seed from explicit CSV path:
+
+```bash
+docker compose exec backend python -m app.db.seed --csv /app/mock_cdr.csv --force
 ```
