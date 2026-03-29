@@ -13,47 +13,47 @@ import {
 
 /* ─── TOKENS ─────────────────────────────────────────── */
 const T = {
-  bg: "var(--bg, #030c24)", surf: "var(--surf, #081a3d)", surf2: "var(--surf2, #0b224e)", surf3: "var(--surf3, #122d63)",
-  border: "var(--border, rgba(70,130,220,0.28))", border2: "var(--border2, rgba(44,198,255,0.55))",
-  cyan: "var(--cyan, #2cc6ff)", cyanD: "var(--cyanD, #1d8be8)", violet: "var(--violet, #8a7aff)",
-  green: "var(--green, #26d6a1)", amber: "var(--amber, #ffc54d)", red: "var(--red, #ff6b9d)",
-  text: "var(--text, #e9f4ff)", muted: "var(--muted, #8ea9d3)", muted2: "var(--muted2, #5a73a0)",
+  bg: "var(--bg, #eee9fb)", surf: "var(--surf, #ffffff)", surf2: "var(--surf2, #f6f0fb)", surf3: "var(--surf3, #ede4fa)",
+  border: "var(--border, rgba(149, 101, 219, 0.22))", border2: "var(--border2, rgba(164, 95, 245, 0.4))",
+  cyan: "var(--cyan, #9e54f7)", cyanD: "var(--cyanD, #8645de)", violet: "var(--violet, #df4698)",
+  green: "var(--green, #37b68f)", amber: "var(--amber, #d78d35)", red: "var(--red, #dd4f85)",
+  text: "var(--text, #1f2640)", muted: "var(--muted, #726587)", muted2: "var(--muted2, #a296bc)",
 };
 
 const THEME_VARS = {
   dark: {
-    "--bg": "#030c24",
-    "--surf": "#081a3d",
-    "--surf2": "#0b224e",
-    "--surf3": "#122d63",
-    "--border": "rgba(70,130,220,0.28)",
-    "--border2": "rgba(44,198,255,0.55)",
-    "--cyan": "#2cc6ff",
-    "--cyanD": "#1d8be8",
-    "--violet": "#8a7aff",
-    "--green": "#26d6a1",
-    "--amber": "#ffc54d",
-    "--red": "#ff6b9d",
-    "--text": "#e9f4ff",
-    "--muted": "#8ea9d3",
-    "--muted2": "#5a73a0",
+    "--bg": "#0a1228",
+    "--surf": "#0e1730",
+    "--surf2": "#1c2537",
+    "--surf3": "#141e33",
+    "--border": "rgba(105, 120, 147, 0.34)",
+    "--border2": "rgba(169, 96, 255, 0.5)",
+    "--cyan": "#a55cf8",
+    "--cyanD": "#8448df",
+    "--violet": "#ea4d9a",
+    "--green": "#37b68f",
+    "--amber": "#d78d35",
+    "--red": "#e4578d",
+    "--text": "#ecf2ff",
+    "--muted": "#95a4be",
+    "--muted2": "#6f7f9a",
   },
   light: {
-    "--bg": "#edf3ff",
+    "--bg": "#f2edfd",
     "--surf": "#ffffff",
-    "--surf2": "#f4f8ff",
-    "--surf3": "#e5edff",
-    "--border": "rgba(36,84,158,0.20)",
-    "--border2": "rgba(22,120,236,0.45)",
-    "--cyan": "#0b7bff",
-    "--cyanD": "#095fc8",
-    "--violet": "#6d62e8",
-    "--green": "#129b73",
-    "--amber": "#c78100",
-    "--red": "#d44f83",
-    "--text": "#0e1d3a",
-    "--muted": "#5974a0",
-    "--muted2": "#8aa0c3",
+    "--surf2": "#f8f3fd",
+    "--surf3": "#efe6fb",
+    "--border": "rgba(149, 101, 219, 0.2)",
+    "--border2": "rgba(164, 95, 245, 0.38)",
+    "--cyan": "#9a4ff6",
+    "--cyanD": "#8242db",
+    "--violet": "#dc4596",
+    "--green": "#32aa86",
+    "--amber": "#cd862e",
+    "--red": "#d74c80",
+    "--text": "#1f2740",
+    "--muted": "#706386",
+    "--muted2": "#a294ba",
   },
 };
 
@@ -69,7 +69,7 @@ const GLOBAL_CSS = `
   input,select{color:${T.text};background:${T.surf2};border:1px solid ${T.border};border-radius:8px;
     padding:9px 12px;font-family:'JetBrains Mono',monospace;font-size:12px;outline:none;width:100%;
     transition:border-color .2s,box-shadow .2s}
-  input:focus,select:focus{border-color:${T.cyan};box-shadow:0 0 0 3px rgba(44,198,255,.16)}
+  input:focus,select:focus{border-color:${T.cyan};box-shadow:0 0 0 3px rgba(158,84,247,.16)}
   input::placeholder{color:${T.muted}}
   select option{background:${T.surf2}}
   button{cursor:pointer}
@@ -80,7 +80,7 @@ const GLOBAL_CSS = `
   @keyframes toastIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
   @keyframes shimmer{0%{background-position:-200px 0}100%{background-position:200px 0}}
   @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-  @keyframes glowPulse{0%,100%{box-shadow:0 0 0 rgba(44,198,255,0)}50%{box-shadow:0 0 22px rgba(44,198,255,.28)}}
+  @keyframes glowPulse{0%,100%{box-shadow:0 0 0 rgba(158,84,247,0)}50%{box-shadow:0 0 22px rgba(158,84,247,.28)}}
 `;
 
 /* ─── MOCK DATA ──────────────────────────────────────── */
@@ -101,7 +101,7 @@ const USER_GRADIENTS = [
   `linear-gradient(135deg,${T.violet},${T.red})`,
   `linear-gradient(135deg,${T.amber},#ff8c00)`,
   `linear-gradient(135deg,${T.red},${T.violet})`,
-  `linear-gradient(135deg,${T.green},#00a0ff)`,
+  `linear-gradient(135deg,${T.green},#d64f9f)`,
 ];
 
 const GOOGLE_SHEET_URL = "https://docs.google.com/spreadsheets/d/1kqnCdclcGpnaVWUXO8BH1BFQtbwVJInqHDji-unrwRc/edit?usp=sharing";
@@ -247,7 +247,7 @@ const ENDPOINTS = [
 const Tag = ({type}) => {
   const cfg = {
     Incoming:{bg:"rgba(38,214,161,.1)",color:T.green},
-    Outgoing:{bg:"rgba(44,198,255,.1)",color:T.cyan},
+    Outgoing:{bg:"rgba(158,84,247,.1)",color:T.cyan},
     Missed:{bg:"rgba(244,63,94,.1)",color:T.red},
   };
   const c = cfg[type]||cfg.Outgoing;
@@ -272,7 +272,7 @@ const StatCard = ({icon,value,label,delta,deltaUp,accent}) => (
     <div style={{
       width:36,height:36,borderRadius:9,marginBottom:14,fontSize:18,
       display:"grid",placeItems:"center",
-      background:"rgba(44,198,255,.14)",color:accent,
+      background:"rgba(158,84,247,.14)",color:accent,
     }}>{icon}</div>
     <div style={{fontSize:28,fontWeight:800,lineHeight:1,marginBottom:4}}>{value}</div>
     <div style={{fontSize:11,color:T.muted,fontWeight:600,letterSpacing:".06em",textTransform:"uppercase"}}>{label}</div>
@@ -288,7 +288,7 @@ const Card = ({title,badge,children,style={},rawBadge=false}) => (
       <div style={{fontSize:13,fontWeight:700,letterSpacing:".04em"}}>{title}</div>
       {badge && (
         rawBadge ? badge : (
-          <span style={{fontSize:10,fontFamily:"'JetBrains Mono',monospace",padding:"3px 9px",borderRadius:6,background:"rgba(44,198,255,.1)",color:T.cyan}}>
+          <span style={{fontSize:10,fontFamily:"'JetBrains Mono',monospace",padding:"3px 9px",borderRadius:6,background:"rgba(158,84,247,.1)",color:T.cyan}}>
             {badge}
           </span>
         )
@@ -303,10 +303,10 @@ const BtnPrimary = ({children,onClick,style={}}) => (
     padding:"10px 22px",background:`linear-gradient(135deg,${T.cyan},${T.cyanD})`,
     border:"none",borderRadius:10,color:"#05080f",fontFamily:"'Space Grotesk',sans-serif",
     fontSize:13,fontWeight:800,letterSpacing:".04em",
-    boxShadow:"0 0 24px rgba(44,198,255,.2)",transition:"transform .15s,box-shadow .15s",...style
+    boxShadow:"0 0 24px rgba(158,84,247,.2)",transition:"transform .15s,box-shadow .15s",...style
   }}
-  onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 0 36px rgba(44,198,255,.38)"}}
-  onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="0 0 24px rgba(44,198,255,.2)"}}
+  onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 0 36px rgba(158,84,247,.38)"}}
+  onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.boxShadow="0 0 24px rgba(158,84,247,.2)"}}
   >{children}</button>
 );
 
@@ -316,7 +316,7 @@ const BtnSm = ({children,onClick}) => (
     borderRadius:8,color:T.cyan,fontFamily:"'Space Grotesk',sans-serif",fontSize:12,fontWeight:700,
     transition:"background .2s",
   }}
-  onMouseEnter={e=>e.currentTarget.style.background="rgba(44,198,255,.1)"}
+  onMouseEnter={e=>e.currentTarget.style.background="rgba(158,84,247,.1)"}
   onMouseLeave={e=>e.currentTarget.style.background=T.surf}
   >{children}</button>
 );
@@ -347,7 +347,13 @@ const Toast = ({msg,visible}) => (
 
 /* ─── LOGIN PAGE ─────────────────────────────────────── */
 const LoginPage = ({onLogin,theme,onToggleTheme}) => {
+  const rolePresets = {
+    analyst: { email: "analyst@example.com", password: "securepass123" },
+    admin: { email: "admin@example.com", password: "securepass123" },
+  };
+
   const [mode, setMode] = useState("login");
+  const [activeRole, setActiveRole] = useState("analyst");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -364,6 +370,18 @@ const LoginPage = ({onLogin,theme,onToggleTheme}) => {
   }, []);
 
   const isSignupMode = mode === "signup";
+  const isDarkTheme = theme === "dark";
+  const iconDefault = isDarkTheme ? "#8d98b1" : "#9aa4b8";
+  const iconFocus = isDarkTheme ? "#b45fff" : "#8f4bff";
+  const iconError = isDarkTheme ? "#ec5a91" : "#c33468";
+  const normalizeAuthError = (err) => {
+    const raw = (getApiErrorMessage(err) || "").trim();
+    if (!raw) return "Login failed. Please try again.";
+    if (/status code 5\d\d/i.test(raw) || /network error/i.test(raw)) {
+      return "Authentication service is temporarily unavailable. Please try again.";
+    }
+    return raw;
+  };
 
   const switchMode = (nextMode) => {
     if (loading) return;
@@ -371,6 +389,15 @@ const LoginPage = ({onLogin,theme,onToggleTheme}) => {
     setError("");
     setSuccess(false);
     setFocusedField(null);
+  };
+
+  const handleRolePick = (role) => {
+    setActiveRole(role);
+    const preset = rolePresets[role];
+    if (!preset) return;
+    setEmail(preset.email);
+    setPassword(preset.password);
+    setError("");
   };
 
   const handleLogin = async () => {
@@ -393,42 +420,103 @@ const LoginPage = ({onLogin,theme,onToggleTheme}) => {
       setSuccess(true);
       setTimeout(() => onLogin(auth.user), 320);
     } catch (err) {
-      setError(getApiErrorMessage(err));
+      setError(normalizeAuthError(err));
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={loginS.root}>
-      <div style={{ ...loginS.blob, top: "-100px", left: "-80px", background: "radial-gradient(circle, rgba(44,198,255,0.2) 0%, transparent 70%)" }} />
-      <div style={{ ...loginS.blob, bottom: "-80px", right: "-60px", background: "radial-gradient(circle, rgba(138,122,255,0.16) 0%, transparent 70%)", width: 450, height: 450 }} />
-      <div style={{ ...loginS.blob, top: "50%", left: "50%", transform: "translate(-50%,-50%)", background: "radial-gradient(circle, rgba(38,214,161,0.1) 0%, transparent 70%)", width: 600, height: 600 }} />
+    <div style={{ ...loginS.root, ...(isDarkTheme ? loginS.rootDark : {}) }}>
+      <div
+        style={{
+          ...loginS.blob,
+          top: "-120px",
+          left: "-120px",
+          background: isDarkTheme
+            ? "radial-gradient(circle, rgba(139,95,251,0.34) 0%, rgba(139,95,251,0) 74%)"
+            : "radial-gradient(circle, rgba(160,122,255,0.28) 0%, rgba(160,122,255,0) 72%)",
+        }}
+      />
+      <div
+        style={{
+          ...loginS.blob,
+          bottom: "-130px",
+          right: "-120px",
+          width: 520,
+          height: 520,
+          background: isDarkTheme
+            ? "radial-gradient(circle, rgba(234,77,154,0.28) 0%, rgba(234,77,154,0) 72%)"
+            : "radial-gradient(circle, rgba(244,120,177,0.27) 0%, rgba(244,120,177,0) 70%)",
+        }}
+      />
+      <div
+        style={{
+          ...loginS.blob,
+          top: "50%",
+          left: "52%",
+          transform: "translate(-50%,-50%)",
+          width: 760,
+          height: 760,
+          background: isDarkTheme
+            ? "radial-gradient(circle, rgba(120,72,232,0.24) 0%, rgba(120,72,232,0) 73%)"
+            : "radial-gradient(circle, rgba(255,255,255,0.25) 0%, rgba(255,255,255,0) 73%)",
+        }}
+      />
 
-      <div style={{ ...loginS.card, opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(20px)", transition: "all 0.6s ease" }}>
+      <div
+        style={{
+          ...loginS.card,
+          ...(isDarkTheme ? loginS.cardDark : {}),
+          opacity: mounted ? 1 : 0,
+          transform: mounted ? "translateY(0)" : "translateY(20px)",
+          transition: "all 0.6s ease",
+        }}
+      >
 
         <button
           onClick={onToggleTheme}
-          style={{
-            ...loginS.themeBtn,
-            background: theme === "dark" ? "#ffffff" : "var(--surf2, #0b224e)",
-            border: theme === "dark" ? "2px solid #202b44" : "1px solid var(--border2, rgba(44,198,255,0.55))",
-          }}
+          style={{ ...loginS.themeBtn, ...(isDarkTheme ? loginS.themeBtnDark : {}) }}
           aria-label="Toggle theme"
           title="Toggle theme"
         >
-          <span style={{display:"grid",placeItems:"center",color:"var(--cyan, #2cc6ff)"}} aria-hidden="true">
-            <ThemeSparkIcon size={14}/>
+          <span style={{display:"grid",placeItems:"center",color:"#9a4ff6"}} aria-hidden="true">
+            <ThemeSparkIcon size={13}/>
           </span>
         </button>
 
         <div style={loginS.titleBlock}>
-          <h1 style={loginS.title}>{isSignupMode ? "Create Account" : "Welcome Back"}</h1>
+          <h1 style={{ ...loginS.title, ...(isDarkTheme ? loginS.titleDark : {}) }}>
+            {isSignupMode ? "Create Account" : "Welcome Back"}
+          </h1>
+          <div style={{ ...loginS.subtitle, ...(isDarkTheme ? loginS.subtitleDark : {}) }}>
+            {isSignupMode ? "Create your access account" : "Login to access your dashboard 🚀"}
+          </div>
         </div>
 
+        {!isSignupMode && (
+          <div style={{ ...loginS.roleWrap, ...(isDarkTheme ? loginS.roleWrapDark : {}) }}>
+            <div style={{ ...loginS.roleSlider, left: activeRole === "analyst" ? 4 : "calc(50% + 2px)" }} />
+            <button
+              type="button"
+              onClick={() => handleRolePick("analyst")}
+              style={{ ...loginS.roleBtn, color: activeRole === "analyst" ? "#fff" : isDarkTheme ? "#98a8c3" : "#11172a" }}
+            >
+              analyst
+            </button>
+            <button
+              type="button"
+              onClick={() => handleRolePick("admin")}
+              style={{ ...loginS.roleBtn, color: activeRole === "admin" ? "#fff" : isDarkTheme ? "#98a8c3" : "#11172a" }}
+            >
+              admin
+            </button>
+          </div>
+        )}
+
         {isSignupMode && (
-          <div style={loginS.inputWrap(focusedField === "name", false)}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={focusedField === "name" ? "var(--cyan, #2cc6ff)" : "var(--muted, #8ea9d3)"} strokeWidth="2">
+          <div style={loginS.inputWrap(focusedField === "name", false, isDarkTheme)}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={focusedField === "name" ? iconFocus : iconDefault} strokeWidth="2">
               <circle cx="12" cy="8" r="4"/><path d="M4 20c2-4 5-6 8-6s6 2 8 6"/>
             </svg>
             <input
@@ -438,13 +526,13 @@ const LoginPage = ({onLogin,theme,onToggleTheme}) => {
               onFocus={() => setFocusedField("name")}
               onBlur={() => setFocusedField(null)}
               placeholder="Full name"
-              style={loginS.input}
+              style={{ ...loginS.input, ...(isDarkTheme ? loginS.inputDark : {}) }}
             />
           </div>
         )}
 
-        <div style={loginS.inputWrap(focusedField === "email", false)}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={focusedField === "email" ? "var(--cyan, #2cc6ff)" : "var(--muted, #8ea9d3)"} strokeWidth="2">
+        <div style={loginS.inputWrap(focusedField === "email", false, isDarkTheme)}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={focusedField === "email" ? iconFocus : iconDefault} strokeWidth="2">
             <rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/>
           </svg>
           <input
@@ -453,13 +541,13 @@ const LoginPage = ({onLogin,theme,onToggleTheme}) => {
             onChange={e => { setEmail(e.target.value); setError(""); }}
             onFocus={() => setFocusedField("email")}
             onBlur={() => setFocusedField(null)}
-            placeholder="Email address"
-            style={loginS.input}
+            placeholder="Email"
+            style={{ ...loginS.input, ...(isDarkTheme ? loginS.inputDark : {}) }}
           />
         </div>
 
-        <div style={loginS.inputWrap(focusedField === "password", !!error)}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={error ? "var(--red, #ff6b9d)" : focusedField === "password" ? "var(--cyan, #2cc6ff)" : "var(--muted, #8ea9d3)"} strokeWidth="2">
+        <div style={loginS.inputWrap(focusedField === "password", !!error, isDarkTheme)}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={error ? iconError : focusedField === "password" ? iconFocus : iconDefault} strokeWidth="2">
             <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
           </svg>
           <input
@@ -469,10 +557,10 @@ const LoginPage = ({onLogin,theme,onToggleTheme}) => {
             onFocus={() => setFocusedField("password")}
             onBlur={() => setFocusedField(null)}
             placeholder="Password"
-            style={loginS.input}
+            style={{ ...loginS.input, ...(isDarkTheme ? loginS.inputDark : {}) }}
           />
-          <span onClick={() => setShowPassword(!showPassword)} style={loginS.eyeBtn}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--muted, #8ea9d3)" strokeWidth="2">
+          <span onClick={() => setShowPassword(!showPassword)} style={{ ...loginS.eyeBtn, ...(isDarkTheme ? loginS.eyeBtnDark : {}) }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={iconDefault} strokeWidth="2">
               {showPassword
                 ? <><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></>
                 : <><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></>
@@ -482,19 +570,29 @@ const LoginPage = ({onLogin,theme,onToggleTheme}) => {
         </div>
 
         {error && (
-          <div style={loginS.errorBox}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="var(--red, #ff6b9d)">
+          <div style={{ ...loginS.errorBox, ...(isDarkTheme ? loginS.errorBoxDark : {}) }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill={isDarkTheme ? "#ef6297" : "#e54883"}>
               <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
               <line x1="12" y1="9" x2="12" y2="13" stroke="white" strokeWidth="2"/><circle cx="12" cy="17" r="1" fill="white"/>
             </svg>
             <div>
-              <div style={loginS.errorTitle}>{isSignupMode ? "Signup Error" : "Login Error"}</div>
-              <div style={loginS.errorMsg}>{error}</div>
+              <div style={{ ...loginS.errorTitle, ...(isDarkTheme ? loginS.errorTitleDark : {}) }}>
+                {isSignupMode ? "Signup Error" : "Login Error"}
+              </div>
+              <div style={{ ...loginS.errorMsg, ...(isDarkTheme ? loginS.errorMsgDark : {}) }}>{error}</div>
             </div>
           </div>
         )}
 
-        <button onClick={handleLogin} disabled={loading || success} style={{ ...loginS.loginBtn, ...(success ? loginS.loginBtnSuccess : {}) }}>
+        <button
+          onClick={handleLogin}
+          disabled={loading || success}
+          style={{
+            ...loginS.loginBtn,
+            ...(isDarkTheme ? loginS.loginBtnDark : {}),
+            ...(success ? loginS.loginBtnSuccess : {}),
+          }}
+        >
           {success ? (
             <span style={loginS.btnRow}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
@@ -505,11 +603,11 @@ const LoginPage = ({onLogin,theme,onToggleTheme}) => {
           ) : (isSignupMode ? "Sign Up" : "Login")}
         </button>
 
-        <p style={loginS.signupText}>
+        <p style={{ ...loginS.signupText, ...(isDarkTheme ? loginS.signupTextDark : {}) }}>
           {isSignupMode ? "Already have an account?" : "Don't have an account?"}{" "}
           <button
             type="button"
-            style={loginS.signupSwitchBtn}
+            style={{ ...loginS.signupSwitchBtn, ...(isDarkTheme ? loginS.signupSwitchBtnDark : {}) }}
             onClick={() => switchMode(isSignupMode ? "login" : "signup")}
           >
             {isSignupMode ? "Login" : "Sign Up"}
@@ -518,10 +616,10 @@ const LoginPage = ({onLogin,theme,onToggleTheme}) => {
       </div>
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@700;800&family=Poppins:wght@400;500;600;700;800&display=swap');
         input:focus { outline: none; }
         button:focus { outline: none; }
-        input::placeholder { color: var(--muted, #8ea9d3); }
+        input::placeholder { color: ${isDarkTheme ? "#93a1bb" : "#8e97ab"}; }
         @keyframes errorSlide { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
       `}</style>
     </div>
@@ -531,76 +629,109 @@ const LoginPage = ({onLogin,theme,onToggleTheme}) => {
 const loginS = {
   root: {
     minHeight: "100vh",
-    background: "linear-gradient(180deg, var(--bg, #030c24) 0%, var(--surf2, #0b224e) 100%)",
+    background: "linear-gradient(120deg, #ece9fb 0%, #f8e7f2 100%)",
     display: "flex",
-    alignItems: "center",
+    alignItems: "flex-start",
     justifyContent: "center",
-    fontFamily: "'Space Grotesk', sans-serif",
+    fontFamily: "'Poppins', sans-serif",
     position: "relative",
-    overflow: "hidden",
+    overflowX: "hidden",
+    overflowY: "auto",
+    padding: "24px 14px",
+  },
+  rootDark: {
+    background: "linear-gradient(120deg, #0a142e 0%, #091128 58%, #110e24 100%)",
   },
   blob: {
-    position: "absolute",
-    width: 500, height: 500,
+    position: "fixed",
+    width: 560, height: 560,
     borderRadius: "50%",
     pointerEvents: "none",
   },
   card: {
-    width: 370,
-    background: "var(--surf, #081a3d)",
-    borderRadius: 24,
-    padding: "34px 30px 28px",
-    boxShadow: "0 8px 32px rgba(44,198,255,0.18), 0 2px 8px rgba(0,0,0,0.24)",
-    border: "1px solid var(--border, rgba(70,130,220,0.28))",
+    width: "min(100%, 420px)",
+    background: "linear-gradient(180deg, rgba(255,255,255,0.96), rgba(248,250,255,0.94))",
+    borderRadius: 26,
+    padding: "30px 28px 28px",
+    boxShadow: "0 22px 58px rgba(147, 105, 202, 0.24)",
+    border: "1px solid rgba(255,255,255,0.88)",
     position: "relative",
     zIndex: 1,
+    backdropFilter: "blur(8px)",
+    margin: "18px 0 22px",
+  },
+  cardDark: {
+    background: "linear-gradient(180deg, rgba(6,11,24,0.96), rgba(6,12,27,0.97))",
+    boxShadow: "0 0 0 1px rgba(102,121,152,0.24), 0 0 60px rgba(138,75,255,0.34)",
+    border: "1px solid rgba(102,121,152,0.3)",
+    backdropFilter: "blur(4px)",
   },
   themeBtn: {
     position: "absolute",
-    top: 20, right: 20,
-    width: 34, height: 34,
-    borderRadius: "50%",
-    background: "var(--surf2, #0b224e)",
+    top: 14, right: 14,
+    width: 46, height: 34,
+    borderRadius: 10,
+    background: "#ffffff",
     display: "grid", placeItems: "center",
     cursor: "pointer",
-    border: "1px solid var(--border2, rgba(44,198,255,0.55))",
+    border: "2px solid #12141b",
     outline: "none",
+    boxShadow: "none",
+  },
+  themeBtnDark: {
+    background: "#ffffff",
+    border: "2px solid #12141b",
+    boxShadow: "none",
   },
   titleBlock: {
     textAlign: "center",
-    marginBottom: 24,
-    paddingTop: 8,
+    marginBottom: 18,
+    paddingTop: 6,
   },
   title: {
-    fontSize: 26,
+    fontSize: "clamp(30px, 5.8vw, 38px)",
     fontWeight: 800,
-    color: "var(--text, #e9f4ff)",
+    fontFamily: "'Manrope', sans-serif",
+    color: "#0f1d3e",
     letterSpacing: "-0.02em",
     marginBottom: 6,
+    lineHeight: 1.04,
+  },
+  titleDark: {
+    color: "#f4f8ff",
   },
   subtitle: {
-    fontSize: 13,
-    color: "var(--muted, #8ea9d3)",
+    fontSize: 16,
+    color: "#54617b",
+    fontWeight: 500,
+  },
+  subtitleDark: {
+    color: "#9ba9c1",
   },
   roleWrap: {
     position: "relative",
     display: "grid",
     gridTemplateColumns: "1fr 1fr",
-    background: "var(--surf2, #0b224e)",
-    borderRadius: 12,
+    background: "#d9dde4",
+    borderRadius: 999,
     padding: 4,
-    marginBottom: 20,
+    marginBottom: 16,
     height: 46,
+    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.72)",
+  },
+  roleWrapDark: {
+    background: "#253246",
+    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)",
   },
   roleSlider: {
     position: "absolute",
     top: 4,
     width: "calc(50% - 6px)",
     height: "calc(100% - 8px)",
-    background: "linear-gradient(135deg, var(--cyan, #2cc6ff), var(--cyanD, #1d8be8))",
-    borderRadius: 9,
+    background: "linear-gradient(90deg, #9753f6 0%, #bd4bdd 44%, #dc428e 100%)",
+    borderRadius: 999,
     transition: "left 0.28s cubic-bezier(0.4,0,0.2,1)",
-    boxShadow: "0 2px 10px rgba(44,198,255,0.35)",
+    boxShadow: "0 8px 16px rgba(154,82,240,0.32)",
   },
   roleBtn: {
     position: "relative",
@@ -608,79 +739,104 @@ const loginS = {
     background: "none",
     border: "none",
     fontSize: 14,
-    fontWeight: 600,
-    fontFamily: "'Space Grotesk', sans-serif",
+    fontWeight: 700,
+    fontFamily: "'Poppins', sans-serif",
     cursor: "pointer",
-    borderRadius: 9,
+    borderRadius: 999,
     transition: "color 0.25s ease",
-    textTransform: "capitalize",
+    textTransform: "lowercase",
   },
-  inputWrap: (focused, isErr) => ({
+  inputWrap: (focused, isErr, isDark = false) => ({
     display: "flex",
     alignItems: "center",
     gap: 10,
-    padding: "0 14px",
-    border: `1.5px solid ${isErr ? "var(--red, #ff6b9d)" : focused ? "var(--cyan, #2cc6ff)" : "var(--border, rgba(70,130,220,0.28))"}`,
+    padding: "0 12px",
+    border: `1.5px solid ${isErr ? (isDark ? "#dd4f86" : "#d23f6e") : focused ? (isDark ? "#b45fff" : "#a25af5") : isDark ? "rgba(112,129,156,0.48)" : "#cfd4df"}`,
     borderRadius: 12,
-    background: isErr ? "rgba(255,107,157,0.08)" : focused ? "var(--surf3, #122d63)" : "var(--surf2, #0b224e)",
+    background: isDark ? "#202938" : "#ffffff",
     marginBottom: 12,
     height: 50,
     transition: "border-color 0.2s, box-shadow 0.2s, background 0.2s",
-    boxShadow: focused && !isErr ? "0 0 0 3px rgba(44,198,255,0.14)" : isErr ? "0 0 0 3px rgba(255,107,157,0.14)" : "none",
+    boxShadow: focused && !isErr
+      ? `0 0 0 3px ${isDark ? "rgba(180,95,255,0.18)" : "rgba(162,90,245,0.16)"}`
+      : isErr
+        ? `0 0 0 3px ${isDark ? "rgba(221,79,134,0.18)" : "rgba(210,63,110,0.13)"}`
+        : "none",
   }),
   input: {
     flex: 1,
     border: "none",
     background: "transparent",
-    fontSize: 14,
-    color: "var(--text, #e9f4ff)",
-    fontFamily: "'Space Grotesk', sans-serif",
+    fontSize: 16,
+    color: "#1f2d45",
+    fontFamily: "'Poppins', sans-serif",
+  },
+  inputDark: {
+    color: "#edf3ff",
   },
   eyeBtn: {
     cursor: "pointer",
     display: "flex",
     alignItems: "center",
     padding: "4px",
+    color: "#9aa4b8",
+  },
+  eyeBtnDark: {
+    color: "#8d98b1",
   },
   errorBox: {
     display: "flex",
     alignItems: "flex-start",
     gap: 10,
     padding: "12px 14px",
-    background: "rgba(255,107,157,0.1)",
-    border: "1px solid rgba(255,107,157,0.3)",
+    background: "rgba(229,72,130,0.1)",
+    border: "1px solid rgba(229,72,130,0.26)",
     borderRadius: 10,
     marginBottom: 16,
     animation: "errorSlide 0.3s ease",
   },
+  errorBoxDark: {
+    background: "rgba(62,31,47,0.66)",
+    border: "1px solid rgba(239,98,151,0.32)",
+  },
   errorTitle: {
     fontSize: 13,
     fontWeight: 600,
-    color: "var(--red, #ff6b9d)",
+    color: "#be3266",
     marginBottom: 2,
+  },
+  errorTitleDark: {
+    color: "#f2689b",
   },
   errorMsg: {
     fontSize: 12,
-    color: "var(--red, #ff6b9d)",
+    color: "#be3266",
+  },
+  errorMsgDark: {
+    color: "#c985a8",
   },
   loginBtn: {
     width: "100%",
-    height: 50,
+    height: 48,
     borderRadius: 12,
     border: "none",
-    background: "linear-gradient(135deg, var(--cyan, #2cc6ff) 0%, var(--cyanD, #1d8be8) 55%, var(--violet, #8a7aff) 100%)",
+    background: "linear-gradient(90deg, #9e54f7 0%, #cc49c4 52%, #e74292 100%)",
     color: "#fff",
-    fontSize: 16,
-    fontWeight: 700,
-    fontFamily: "'Space Grotesk', sans-serif",
+    fontSize: 17,
+    fontWeight: 800,
+    fontFamily: "'Poppins', sans-serif",
     cursor: "pointer",
-    boxShadow: "0 4px 18px rgba(44,198,255,0.28)",
+    boxShadow: "0 12px 20px rgba(188,72,195,0.3)",
     transition: "all 0.25s ease",
     marginBottom: 20,
+    letterSpacing: "-0.02em",
+  },
+  loginBtnDark: {
+    boxShadow: "0 14px 24px rgba(177,74,212,0.3)",
   },
   loginBtnSuccess: {
-    background: "linear-gradient(135deg, #10b981, #34d399)",
-    boxShadow: "0 4px 16px rgba(16,185,129,0.4)",
+    background: "linear-gradient(90deg, #9e54f7 0%, #cc49c4 52%, #e74292 100%)",
+    boxShadow: "0 12px 20px rgba(188,72,195,0.3)",
   },
   btnRow: {
     display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
@@ -695,23 +851,29 @@ const loginS = {
   },
   signupText: {
     textAlign: "center",
-    fontSize: 13,
-    color: "var(--muted, #8ea9d3)",
+    fontSize: 14,
+    color: "#34425d",
+  },
+  signupTextDark: {
+    color: "#93a1bd",
   },
   signupLink: {
-    color: "var(--cyan, #2cc6ff)",
+    color: "#8b4dff",
     fontWeight: 600,
     cursor: "pointer",
   },
   signupSwitchBtn: {
     border: "none",
     background: "transparent",
-    color: "var(--cyan, #2cc6ff)",
+    color: "#8b4dff",
     fontWeight: 600,
     cursor: "pointer",
-    fontFamily: "'Space Grotesk', sans-serif",
-    fontSize: 13,
+    fontFamily: "'Poppins', sans-serif",
+    fontSize: 14,
     padding: 0,
+  },
+  signupSwitchBtnDark: {
+    color: "#a964ff",
   },
 };
 
@@ -732,7 +894,7 @@ const Topbar = ({role,userName,theme,onToggleTheme}) => {
       borderBottom:`1px solid ${T.border}`,background:T.surf,
       backdropFilter:"blur(20px)",position:"sticky",top:0,zIndex:100,gap:20,
     }}>
-      <span style={{fontSize:12,fontWeight:600,color:T.muted,letterSpacing:".06em"}}>telecom-intelligence-platform</span>
+      <span style={{fontSize:14,fontWeight:700,color:T.muted,letterSpacing:".05em"}}>Telecom-intelligence-platform</span>
 
       <div style={{marginLeft:"auto",display:"flex",alignItems:"center",gap:14}}>
         <button
@@ -793,16 +955,16 @@ const Sidebar = ({page,setPage,role,onLogout}) => {
                 display:"flex",alignItems:"center",gap:10,padding:"9px 12px",borderRadius:10,
                 cursor:"pointer",fontSize:13,fontWeight:600,marginBottom:2,
                 color:page===n.id?T.cyan:T.muted,
-                background:page===n.id?"rgba(44,198,255,.14)":"transparent",
-                border:page===n.id?`1px solid rgba(44,198,255,.35)`:"1px solid transparent",
+                background:page===n.id?"rgba(158,84,247,.14)":"transparent",
+                border:page===n.id?`1px solid rgba(158,84,247,.35)`:"1px solid transparent",
                 transition:"all .18s",
               }}
-              onMouseEnter={e=>{if(page!==n.id){e.currentTarget.style.background="rgba(44,198,255,.1)";e.currentTarget.style.color=T.cyan}}}
+              onMouseEnter={e=>{if(page!==n.id){e.currentTarget.style.background="rgba(158,84,247,.1)";e.currentTarget.style.color=T.cyan}}}
               onMouseLeave={e=>{if(page!==n.id){e.currentTarget.style.background="transparent";e.currentTarget.style.color=T.muted}}}
               >
                 <span style={{fontSize:14}}>{n.icon}</span>
                 {n.label}
-                {n.badge&&<span style={{marginLeft:"auto",padding:"2px 7px",borderRadius:8,background:"rgba(44,198,255,.12)",color:T.cyan,fontSize:10,fontWeight:700,fontFamily:"'JetBrains Mono',monospace"}}>{n.badge}</span>}
+                {n.badge&&<span style={{marginLeft:"auto",padding:"2px 7px",borderRadius:8,background:"rgba(158,84,247,.12)",color:T.cyan,fontSize:10,fontWeight:700,fontFamily:"'JetBrains Mono',monospace"}}>{n.badge}</span>}
               </div>
             ))}
           </div>
@@ -946,7 +1108,7 @@ const Dashboard = ({setPage,showToast,cdrData}) => {
   return (
     <div style={{animation:"fadeUp .35s ease both"}}>
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
-        <div style={{fontSize:14,fontWeight:700,letterSpacing:".05em"}}>Welcome</div>
+        <div style={{fontSize:24,fontWeight:800,letterSpacing:".02em",lineHeight:1.1}}>Welcome</div>
         <div style={{fontSize:10,color:T.muted,fontFamily:"'JetBrains Mono',monospace"}}>Realtime View</div>
       </div>
 
@@ -983,7 +1145,7 @@ const Dashboard = ({setPage,showToast,cdrData}) => {
             </div>
             <button
               onClick={() => { setCityFilter("all"); setFromDate(""); setToDate(""); }}
-              style={{height:40,padding:"0 14px",borderRadius:10,border:`1px solid ${T.border2}`,background:"rgba(44,198,255,.08)",color:T.cyan,fontSize:13,fontWeight:700,whiteSpace:"nowrap",fontFamily:filterUiFont}}
+              style={{height:40,padding:"0 14px",borderRadius:10,border:`1px solid ${T.border2}`,background:"rgba(158,84,247,.08)",color:T.cyan,fontSize:13,fontWeight:700,whiteSpace:"nowrap",fontFamily:filterUiFont}}
             >
               Reset Filters
             </button>
@@ -1067,7 +1229,7 @@ const Dashboard = ({setPage,showToast,cdrData}) => {
                 <div style={{fontSize:24,fontWeight:800,lineHeight:1,marginBottom:6}}>{x.value}</div>
                 <div style={{fontSize:9,color:T.muted,fontFamily:"'JetBrains Mono',monospace"}}>{x.sub}</div>
               </div>
-              <div style={{width:20,height:20,borderRadius:6,background:"rgba(44,198,255,.14)",color:x.color,fontSize:12,display:"grid",placeItems:"center"}}>{x.icon}</div>
+              <div style={{width:20,height:20,borderRadius:6,background:"rgba(158,84,247,.14)",color:x.color,fontSize:12,display:"grid",placeItems:"center"}}>{x.icon}</div>
             </div>
           ))}
         </div>
@@ -1140,7 +1302,7 @@ const Dashboard = ({setPage,showToast,cdrData}) => {
             </thead>
             <tbody>
               {rows.map((r, i)=>(
-                <tr key={`${r.id}-${i}`} onMouseEnter={e=>e.currentTarget.querySelectorAll("td").forEach(td=>td.style.background="rgba(44,198,255,.04)")} onMouseLeave={e=>e.currentTarget.querySelectorAll("td").forEach(td=>td.style.background="transparent")}>
+                <tr key={`${r.id}-${i}`} onMouseEnter={e=>e.currentTarget.querySelectorAll("td").forEach(td=>td.style.background="rgba(158,84,247,.04)")} onMouseLeave={e=>e.currentTarget.querySelectorAll("td").forEach(td=>td.style.background="transparent")}>
                   <td style={tdStyle}>{r._callerName}</td>
                   <td style={tdStyle}>{r.caller}</td>
                   <td style={tdStyle}>{r.receiver}</td>
@@ -1176,7 +1338,7 @@ const TableGrid = ({rows,showIndex=true,startIdx=0}) => (
       <tbody>
         {rows.map((r,i)=>(
           <tr key={r.id}
-            onMouseEnter={e=>e.currentTarget.querySelectorAll("td").forEach(td=>td.style.background="rgba(44,198,255,.03)")}
+            onMouseEnter={e=>e.currentTarget.querySelectorAll("td").forEach(td=>td.style.background="rgba(158,84,247,.03)")}
             onMouseLeave={e=>e.currentTarget.querySelectorAll("td").forEach(td=>td.style.background="transparent")}
           >
             {showIndex&&<td style={tdStyle}><span style={{color:T.muted,fontSize:11}}>{startIdx+i+1}</span></td>}
@@ -1193,7 +1355,7 @@ const TableGrid = ({rows,showIndex=true,startIdx=0}) => (
   </div>
 );
 const thStyle={padding:"12px 16px",textAlign:"left",fontSize:10,fontWeight:700,letterSpacing:".1em",textTransform:"uppercase",color:T.muted,borderBottom:`1px solid ${T.border}`};
-const tdStyle={padding:"12px 16px",fontSize:12,fontFamily:"'JetBrains Mono',monospace",borderBottom:`1px solid rgba(44,198,255,.04)`,transition:"background .15s"};
+const tdStyle={padding:"12px 16px",fontSize:12,fontFamily:"'JetBrains Mono',monospace",borderBottom:`1px solid rgba(158,84,247,.04)`,transition:"background .15s"};
 const dashPgBtnStyle = disabled => ({
   width:28,
   height:28,
@@ -1338,7 +1500,7 @@ const cdrPgActionStyle = (disabled, variant) => ({
   padding:"0 10px",
   borderRadius:6,
   border:`1px solid ${disabled ? T.border : (variant === "next" ? T.cyan : T.border2)}`,
-  background:disabled ? T.surf3 : (variant === "next" ? "rgba(44,198,255,.14)" : T.surf),
+  background:disabled ? T.surf3 : (variant === "next" ? "rgba(158,84,247,.14)" : T.surf),
   color:disabled ? T.muted2 : T.cyan,
   fontSize:10,
   fontWeight:600,
@@ -1577,7 +1739,7 @@ const UsersPage = ({showToast,currentUserId}) => {
               padding:"0 14px",
               borderRadius:8,
               border:`1px solid ${T.border2}`,
-              background:creatingUser ? T.surf3 : "rgba(44,198,255,.1)",
+              background:creatingUser ? T.surf3 : "rgba(158,84,247,.1)",
               color:creatingUser ? T.muted2 : T.cyan,
               fontFamily:"'Space Grotesk',sans-serif",
               fontSize:12,
@@ -1637,7 +1799,7 @@ const UsersPage = ({showToast,currentUserId}) => {
                 <span style={{
                   display:"inline-flex",alignItems:"center",gap:5,
                   padding:"4px 10px",borderRadius:8,fontSize:10,fontWeight:700,letterSpacing:".06em",textTransform:"uppercase",
-                  background:u.role==="admin"?"rgba(139,92,246,.12)":"rgba(44,198,255,.10)",
+                  background:u.role==="admin"?"rgba(139,92,246,.12)":"rgba(158,84,247,.10)",
                   color:u.role==="admin"?T.violet:T.cyan,
                 }}>● {u.role || "analyst"}</span>
 
@@ -1859,9 +2021,9 @@ export default function App() {
   return (
     <>
       {/* bg grid */}
-      <div style={{position:"fixed",inset:0,backgroundImage:`linear-gradient(rgba(44,198,255,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(44,198,255,.022) 1px,transparent 1px)`,backgroundSize:"48px 48px",pointerEvents:"none",zIndex:0}}/>
-      <div style={{position:"fixed",width:700,height:700,borderRadius:"50%",filter:"blur(140px)",background:"rgba(44,198,255,.04)",top:-200,left:-200,animation:"blobdrift 14s ease-in-out infinite alternate",pointerEvents:"none",zIndex:0}}/>
-      <div style={{position:"fixed",width:600,height:600,borderRadius:"50%",filter:"blur(140px)",background:"rgba(139,92,246,.05)",bottom:-150,right:-150,animation:"blobdrift 18s ease-in-out infinite alternate-reverse",pointerEvents:"none",zIndex:0}}/>
+      <div style={{position:"fixed",inset:0,backgroundImage:`linear-gradient(rgba(158,84,247,.028) 1px,transparent 1px),linear-gradient(90deg,rgba(158,84,247,.028) 1px,transparent 1px)`,backgroundSize:"48px 48px",pointerEvents:"none",zIndex:0}}/>
+      <div style={{position:"fixed",width:700,height:700,borderRadius:"50%",filter:"blur(140px)",background:"rgba(158,84,247,.09)",top:-200,left:-200,animation:"blobdrift 14s ease-in-out infinite alternate",pointerEvents:"none",zIndex:0}}/>
+      <div style={{position:"fixed",width:600,height:600,borderRadius:"50%",filter:"blur(140px)",background:"rgba(231,66,146,.08)",bottom:-150,right:-150,animation:"blobdrift 18s ease-in-out infinite alternate-reverse",pointerEvents:"none",zIndex:0}}/>
 
       <div style={{display:"flex",flexDirection:"column",height:"100vh",overflow:"hidden",position:"relative",zIndex:1}}>
         <Topbar role={role} userName={userName} theme={theme} onToggleTheme={toggleTheme}/>
