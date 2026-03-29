@@ -52,6 +52,25 @@ const AUTH_STYLES = `
     filter: blur(18px);
   }
 
+  .pv-bg--pastel {
+    background-image: none;
+    background: linear-gradient(110deg, #eeebfb 0%, #f8e8f2 100%);
+    mask-image: none;
+  }
+
+  .pv-glow--pastel {
+    width: min(96vw, 1040px);
+    height: min(96vw, 840px);
+    border-radius: 38%;
+    background:
+      radial-gradient(circle at 22% 24%, rgba(177, 129, 255, 0.19) 0%, rgba(177, 129, 255, 0.02) 56%),
+      radial-gradient(circle at 78% 76%, rgba(243, 110, 170, 0.2) 0%, rgba(243, 110, 170, 0.02) 58%);
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -52%);
+    filter: blur(2px);
+  }
+
   .pv-card {
     position: relative;
     z-index: 1;
@@ -318,55 +337,90 @@ const AUTH_STYLES = `
   }
 
   .pv-login-card {
-    width: min(100%, 392px);
-    padding: clamp(24px, 5vw, 32px);
+    width: min(100%, 430px);
+    padding: clamp(24px, 5vw, 34px) clamp(20px, 5vw, 40px) clamp(26px, 6vw, 34px);
     border-radius: 24px;
-    background:
-      linear-gradient(180deg, rgba(8, 34, 88, 0.95) 0%, rgba(3, 24, 70, 0.98) 100%);
-    border: 1px solid rgba(72, 150, 255, 0.34);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.94) 0%, rgba(249, 250, 255, 0.93) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.76);
     box-shadow:
-      inset 0 1px 0 rgba(187, 222, 255, 0.14),
-      0 22px 66px rgba(1, 11, 43, 0.82);
+      inset 0 1px 0 rgba(255, 255, 255, 0.92),
+      0 24px 56px rgba(153, 111, 209, 0.22);
+    backdrop-filter: blur(10px);
   }
 
   .pv-login-badge {
     margin-left: auto;
-    width: 34px;
-    height: 34px;
+    width: 38px;
+    height: 38px;
     border-radius: 999px;
-    border: 1px solid rgba(160, 214, 255, 0.56);
-    background: rgba(255, 255, 255, 0.93);
-    color: #4ea9ef;
+    border: 1px solid rgba(211, 214, 224, 0.9);
+    background: #f1f2f6;
+    color: #31384b;
     display: grid;
     place-items: center;
-    box-shadow: 0 6px 20px rgba(8, 16, 40, 0.32);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
   }
 
   .pv-login-heading {
-    margin: 16px 0 22px;
+    margin: 10px 0 6px;
     text-align: center;
-    color: #f8fbff;
-    font-size: clamp(34px, 7vw, 48px);
-    line-height: 1.03;
+    color: #0f1d3e;
+    font-size: clamp(40px, 7.6vw, 48px);
+    line-height: 1;
+    font-weight: 800;
     letter-spacing: -0.03em;
     position: relative;
     text-wrap: balance;
   }
 
   .pv-login-heading::after {
-    content: "";
-    position: absolute;
-    left: 9%;
-    right: 9%;
-    top: 55%;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(214, 235, 255, 0.7), transparent);
-    pointer-events: none;
+    content: none;
+  }
+
+  .pv-login-sub {
+    margin-bottom: 22px;
+    text-align: center;
+    color: #55607b;
+    font-size: 16px;
+    line-height: 1.3;
+    font-weight: 500;
+  }
+
+  .pv-login-role-switch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    margin-bottom: 18px;
+    padding: 4px;
+    border-radius: 999px;
+    background: #d8dbe2;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  }
+
+  .pv-login-role-btn {
+    min-height: 36px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: #1e2741;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+    text-transform: lowercase;
+    cursor: pointer;
+    transition: color 0.2s, background 0.2s, box-shadow 0.2s;
+  }
+
+  .pv-login-role-btn.is-active {
+    background: linear-gradient(90deg, #9152f0 0%, #b84add 44%, #db428d 100%);
+    color: #fff;
+    box-shadow: 0 8px 16px rgba(145, 82, 240, 0.35);
   }
 
   .pv-login-form {
     display: grid;
-    gap: 12px;
+    gap: 14px;
   }
 
   .pv-login-field {
@@ -375,26 +429,26 @@ const AUTH_STYLES = `
 
   .pv-login-input-shell {
     width: 100%;
-    min-height: 52px;
-    border-radius: 13px;
-    border: 1px solid rgba(86, 155, 255, 0.36);
-    background: linear-gradient(180deg, rgba(8, 33, 81, 0.7) 0%, rgba(4, 28, 72, 0.76) 100%);
+    min-height: 50px;
+    border-radius: 12px;
+    border: 1px solid #cfd4df;
+    background: #ffffff;
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 7px 10px 7px 13px;
+    padding: 0 12px 0 12px;
     transition: border-color 0.2s, box-shadow 0.2s;
   }
 
   .pv-login-input-shell:focus-within {
-    border-color: rgba(90, 192, 255, 0.95);
-    box-shadow: 0 0 0 3px rgba(41, 180, 246, 0.18);
+    border-color: rgba(165, 89, 247, 0.72);
+    box-shadow: 0 0 0 3px rgba(165, 89, 247, 0.15);
   }
 
   .pv-login-lead {
     width: 18px;
     height: 18px;
-    color: #9cc8f7;
+    color: #98a1b2;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -404,25 +458,25 @@ const AUTH_STYLES = `
   .pv-login-input {
     width: 100%;
     border: 0;
-    border-radius: 8px;
-    background: rgba(124, 170, 238, 0.2);
-    color: #f2f7ff;
+    border-radius: 0;
+    background: transparent;
+    color: #1f2b43;
     font-family: 'DM Sans', sans-serif;
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 500;
     line-height: 1.2;
-    padding: 10px 12px;
+    padding: 11px 0;
     outline: none;
     -webkit-appearance: none;
   }
 
   .pv-login-input::placeholder {
-    color: rgba(198, 221, 246, 0.88);
-    font-weight: 600;
+    color: #8e98ac;
+    font-weight: 500;
   }
 
   .pv-login-input-password {
-    padding-right: 6px;
+    padding-right: 2px;
   }
 
   .pv-login-toggle {
@@ -430,7 +484,7 @@ const AUTH_STYLES = `
     height: 22px;
     border: 0;
     background: transparent;
-    color: #9cc8f7;
+    color: #98a1b2;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -441,54 +495,57 @@ const AUTH_STYLES = `
   }
 
   .pv-login-toggle:hover {
-    color: #e2f1ff;
+    color: #6a7388;
   }
 
   .pv-login-btn {
     width: 100%;
-    margin-top: 4px;
-    min-height: 52px;
+    margin-top: 2px;
+    min-height: 50px;
     border: 0;
-    border-radius: 13px;
+    border-radius: 12px;
     padding: 12px;
-    background: linear-gradient(90deg, #35bdf6 0%, #5f82f4 100%);
-    color: #f4fbff;
+    background: linear-gradient(90deg, #9e54f7 0%, #cc49c4 52%, #e74292 100%);
+    color: #fff;
     font-family: 'DM Sans', sans-serif;
-    font-size: 30px;
+    font-size: 17px;
     line-height: 1;
-    font-weight: 700;
-    letter-spacing: -0.01em;
+    font-weight: 800;
+    letter-spacing: -0.02em;
     cursor: pointer;
     transition: transform 0.15s, box-shadow 0.2s, opacity 0.2s;
-    box-shadow: 0 16px 28px rgba(49, 139, 234, 0.37);
+    box-shadow: 0 12px 22px rgba(188, 72, 195, 0.32);
   }
 
   .pv-login-btn:hover:not(:disabled) {
     transform: translateY(-1px);
-    box-shadow: 0 20px 34px rgba(49, 139, 234, 0.45);
+    box-shadow: 0 16px 26px rgba(188, 72, 195, 0.42);
   }
 
   .pv-login-btn:disabled {
-    opacity: 0.72;
+    opacity: 0.7;
     cursor: not-allowed;
     box-shadow: none;
   }
 
   .pv-login-status {
     margin-top: 14px;
+    border-color: rgba(242, 79, 126, 0.32);
+    background: rgba(242, 79, 126, 0.11);
+    color: #cd3369;
   }
 
   .pv-login-footer {
     margin-top: 18px;
     text-align: center;
-    color: #a9cbf4;
-    font-size: 13px;
+    color: #323f5a;
+    font-size: 14px;
     line-height: 1.4;
     font-weight: 500;
   }
 
   .pv-login-footer a {
-    color: #0ac0ff;
+    color: #8b4dff;
     text-decoration: none;
     font-weight: 700;
   }
@@ -530,12 +587,30 @@ const AUTH_STYLES = `
     }
 
     .pv-login-heading {
-      font-size: clamp(30px, 11vw, 38px);
+      font-size: clamp(32px, 11vw, 40px);
+    }
+
+    .pv-login-sub {
+      font-size: 14px;
+      margin-bottom: 16px;
+    }
+
+    .pv-login-role-btn {
+      min-height: 34px;
+      font-size: 13px;
+    }
+
+    .pv-login-input {
+      font-size: 15px;
     }
 
     .pv-login-btn {
-      min-height: 50px;
-      font-size: 26px;
+      min-height: 46px;
+      font-size: 16px;
+    }
+
+    .pv-login-footer {
+      font-size: 13px;
     }
   }
 
@@ -564,11 +639,14 @@ export function useAuthPageStyles() {
   }, []);
 }
 
-export function AuthPageBackground() {
+type AuthPageBackgroundVariant = "darkGrid" | "pastel";
+
+export function AuthPageBackground({ variant = "darkGrid" }: { variant?: AuthPageBackgroundVariant }) {
+  const isPastel = variant === "pastel";
   return (
     <>
-      <div className="pv-bg" />
-      <div className="pv-glow" />
+      <div className={`pv-bg${isPastel ? " pv-bg--pastel" : ""}`} />
+      <div className={`pv-glow${isPastel ? " pv-glow--pastel" : ""}`} />
     </>
   );
 }
@@ -619,6 +697,18 @@ export function SparkIcon() {
       <path strokeLinecap="round" d="m17.5 6.5-2.1 2.1" />
       <path strokeLinecap="round" d="m8.6 15.4-2.1 2.1" />
       <circle cx="12" cy="12" r="3.2" />
+    </svg>
+  );
+}
+
+export function MoonIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M21 12.8A8.5 8.5 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"
+      />
     </svg>
   );
 }

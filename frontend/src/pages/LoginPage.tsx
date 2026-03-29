@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { getApiErrorMessage } from "../api/client";
 import { useAuth } from "../context/AuthContext";
-import { AuthPageBackground, EyeIcon, LockIcon, MailIcon, SparkIcon, useAuthPageStyles } from "./authUi";
+import { AuthPageBackground, EyeIcon, LockIcon, MailIcon, MoonIcon, useAuthPageStyles } from "./authUi";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -15,6 +15,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
+  const [activeRoleTab, setActiveRoleTab] = useState<"analyst" | "admin">("analyst");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -41,14 +42,36 @@ export default function LoginPage() {
 
   return (
     <>
-      <AuthPageBackground />
+      <AuthPageBackground variant="pastel" />
 
       <div className="pv-card pv-login-card">
         <div className="pv-login-badge" aria-hidden="true">
-          <SparkIcon />
+          <MoonIcon />
         </div>
 
         <h1 className="pv-login-heading">Welcome Back</h1>
+        <p className="pv-login-sub">Login to access your dashboard 🚀</p>
+
+        <div className="pv-login-role-switch" role="tablist" aria-label="Account type">
+          <button
+            className={`pv-login-role-btn${activeRoleTab === "analyst" ? " is-active" : ""}`}
+            type="button"
+            role="tab"
+            aria-selected={activeRoleTab === "analyst"}
+            onClick={() => setActiveRoleTab("analyst")}
+          >
+            analyst
+          </button>
+          <button
+            className={`pv-login-role-btn${activeRoleTab === "admin" ? " is-active" : ""}`}
+            type="button"
+            role="tab"
+            aria-selected={activeRoleTab === "admin"}
+            onClick={() => setActiveRoleTab("admin")}
+          >
+            admin
+          </button>
+        </div>
 
         <form className="pv-login-form" onSubmit={onSubmit}>
           <div className="pv-login-field">
@@ -60,7 +83,7 @@ export default function LoginPage() {
                 className="pv-login-input"
                 id="pv-email"
                 type="email"
-                placeholder="admin@example.com"
+                placeholder="Email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
                 autoComplete="email"
@@ -78,7 +101,7 @@ export default function LoginPage() {
                 className="pv-login-input pv-login-input-password"
                 id="pv-password"
                 type={showPw ? "text" : "password"}
-                placeholder=".........."
+                placeholder="Password"
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
                 autoComplete="current-password"
