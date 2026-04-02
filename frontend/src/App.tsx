@@ -349,7 +349,7 @@ const Toast = ({msg,visible}) => (
 const LoginPage = ({onLogin,theme,onToggleTheme}) => {
   const rolePresets = {
     analyst: { email: "analyst@example.com", password: "securepass123" },
-    admin: { email: "admin@example.com", password: "securepass123" },
+    admin: { email: "admin@example.com", password: "Admin@12345" },
   };
 
   const [mode, setMode] = useState("login");
